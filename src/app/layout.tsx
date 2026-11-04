@@ -13,6 +13,9 @@ const notoThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  ),
   title: {
     default: "FastHelp — เรียกช่างและบริการถึงบ้าน",
     template: "%s | FastHelp",
