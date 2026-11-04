@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
 import { AccountForm } from "@/components/account-form";
+import { PasswordForm } from "@/components/auth-forms";
 import {
   CalendarIcon,
   ChevronRightIcon,
@@ -100,6 +101,16 @@ export default async function AccountPage() {
             สมาชิกตั้งแต่ {formatDate(profile.created_at)}
           </p>
         ) : null}
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-semibold text-slate-900">เปลี่ยนรหัสผ่าน</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          ตั้งรหัสผ่านใหม่สำหรับบัญชีนี้
+        </p>
+        <div className="mt-4">
+          <PasswordForm />
+        </div>
       </div>
 
       <form action={signOut} className="mt-4">

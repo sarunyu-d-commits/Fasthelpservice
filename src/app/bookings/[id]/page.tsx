@@ -272,7 +272,7 @@ export default async function BookingDetailPage({
               </div>
             ) : (
               <p className="mt-2 text-sm text-slate-500">
-                กำลังรอช่างรับงาน คุณจะได้รับการแจ้งเตือนเมื่อมีช่างรับงาน
+                กำลังรอช่างรับงาน เมื่อมีช่างรับงาน สถานะจะอัปเดตที่หน้านี้
               </p>
             )}
 
@@ -288,6 +288,11 @@ export default async function BookingDetailPage({
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="font-semibold text-slate-900">สถานะงาน</h2>
+            {booking.status === "cancelled" ? (
+              <p className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700">
+                การจองนี้ถูกยกเลิกแล้ว
+              </p>
+            ) : (
             <ol className="mt-3 space-y-3">
               {TIMELINE.map((step, index) => {
                 const done = currentStep >= index;
@@ -322,6 +327,7 @@ export default async function BookingDetailPage({
                 );
               })}
             </ol>
+            )}
 
             {canCancel ? (
               <form action={updateBookingStatus} className="mt-4">

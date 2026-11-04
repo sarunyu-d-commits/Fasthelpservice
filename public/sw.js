@@ -1,7 +1,13 @@
-const CACHE_NAME = "fasthelp-static-v1";
+const CACHE_NAME = "fasthelp-static-v2";
+const OFFLINE_URL = "/offline.html";
 
-self.addEventListener("install", () => {
-  self.skipWaiting();
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll([OFFLINE_URL]))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener("activate", (event) => {
@@ -25,6 +31,17 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(() =>
+        caches
+          .match(OFFLINE_URL)
+          .then((cached) => cached ?? Response.error()),
+      ),
+    );
+    return;
+  }
 
   const cacheable =
     url.pathname.startsWith("/_next/static/") ||

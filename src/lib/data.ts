@@ -5,8 +5,10 @@ import type {
   Booking,
   BookingWithRelations,
   Message,
+  OpenJob,
   Profile,
   ProviderProfile,
+  ProviderWithProfile,
   Review,
   Service,
 } from "./types";
@@ -134,7 +136,84 @@ export async function getProviderJobs(
   }
 }
 
-export async function getOpenBookings(): Promise<BookingWithRelations[]> {
+export async function getOpenBookings(
+  providerId: string,
+): Promise<OpenJob[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const supabase = await createClient();
+
+    const { data: provider } = await supabase
+      .from("provider_profiles")
+      .select("is_available")
+      .eq("id", providerId)
+      .maybeSingle();
+
+    if (!provider || provider.is_available === false) return [];
+
+    const { data: links } = await supabase
+      .from("provider_services")
+      .select("service_id")
+      .eq("provider_id", providerId);
+
+    const serviceIds = (links ?? []).map((row) => row.service_id as string);
+    if (serviceIds.length === 0) return [];
+
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(
+        "id, customer_id, service_id, status, scheduled_at, price, payment_status, created_at, service:services(*)",
+      )
+      .is("provider_id", null)
+      .eq("status", "pending")
+      .in("service_id", serviceIds)
+      .order("scheduled_at", { ascending: true });
+
+    if (error || !data) return [];
+    return data as unknown as OpenJob[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getAllServices(): Promise<Service[]> {
+  if (!isSupabaseConfigured()) return SEED_SERVICES;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .order("sort_order", { ascending: true });
+
+    if (error || !data) return SEED_SERVICES;
+    return data as Service[];
+  } catch {
+    return SEED_SERVICES;
+  }
+}
+
+export async function getAllProviders(): Promise<ProviderWithProfile[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("provider_profiles")
+      .select("*, profile:profiles!provider_profiles_id_fkey(*)")
+      .order("created_at", { ascending: false });
+
+    if (error || !data) return [];
+    return data as unknown as ProviderWithProfile[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getRecentBookings(
+  limit = 20,
+): Promise<BookingWithRelations[]> {
   if (!isSupabaseConfigured()) return [];
 
   try {
@@ -142,9 +221,8 @@ export async function getOpenBookings(): Promise<BookingWithRelations[]> {
     const { data, error } = await supabase
       .from("bookings")
       .select(BOOKING_SELECT)
-      .is("provider_id", null)
-      .eq("status", "pending")
-      .order("scheduled_at", { ascending: true });
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
     if (error || !data) return [];
     return (data as Record<string, unknown>[]).map(normalizeBooking);

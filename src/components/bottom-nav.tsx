@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   GridIcon,
   HomeIcon,
+  ShieldIcon,
   UserIcon,
   WrenchIcon,
 } from "./icons";
@@ -24,14 +25,32 @@ const providerItems = [
   { href: "/provider/profile", label: "โปรไฟล์", Icon: UserIcon },
 ];
 
+const adminItems = [
+  { href: "/admin", label: "แอดมิน", Icon: ShieldIcon },
+  { href: "/services", label: "บริการ", Icon: GridIcon },
+  { href: "/bookings", label: "การจอง", Icon: CalendarIcon },
+  { href: "/account", label: "บัญชี", Icon: UserIcon },
+];
+
 export function BottomNav({ role }: { role: Role | undefined }) {
   const pathname = usePathname();
 
-  if (!role || pathname === "/login" || pathname === "/register") {
+  if (
+    !role ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password"
+  ) {
     return null;
   }
 
-  const items = role === "provider" ? providerItems : customerItems;
+  const items =
+    role === "provider"
+      ? providerItems
+      : role === "admin"
+        ? adminItems
+        : customerItems;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur sm:hidden">

@@ -84,6 +84,23 @@ export type BookingWithRelations = Booking & {
   review: Review | null;
 };
 
+// งานที่ยังไม่มีช่างรับ: ไม่ส่งที่อยู่/รายละเอียดให้ช่างเห็นจนกว่าจะรับงาน
+export type OpenJob = {
+  id: string;
+  customer_id: string;
+  service_id: string;
+  status: BookingStatus;
+  scheduled_at: string;
+  price: number;
+  payment_status: PaymentStatus;
+  created_at: string;
+  service: Service | null;
+};
+
+export type ProviderWithProfile = ProviderProfile & {
+  profile: Profile | null;
+};
+
 export interface AuthContext {
   user: { id: string; email?: string };
   profile: Profile | null;

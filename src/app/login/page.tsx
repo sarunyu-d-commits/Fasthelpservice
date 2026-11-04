@@ -33,8 +33,12 @@ export default async function LoginPage({
 
       <p className="mt-4 text-center text-xs text-slate-400">
         การเข้าใช้งานถือว่ายอมรับ{" "}
-        <Link href="/" className="underline">
+        <Link href="/terms" className="underline">
           ข้อกำหนดการใช้งาน
+        </Link>{" "}
+        และ{" "}
+        <Link href="/privacy" className="underline">
+          นโยบายความเป็นส่วนตัว
         </Link>
       </p>
     </div>

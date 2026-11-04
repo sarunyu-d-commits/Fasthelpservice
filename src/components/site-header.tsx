@@ -15,13 +15,20 @@ export function SiteHeader({ auth }: { auth: AuthContext | null }) {
           { href: "/provider/profile", label: "โปรไฟล์ช่าง" },
           { href: "/account", label: "บัญชี" },
         ]
-      : role === "customer" || role === "admin"
+      : role === "admin"
         ? [
+            { href: "/admin", label: "ผู้ดูแลระบบ" },
             { href: "/services", label: "บริการ" },
-            { href: "/bookings", label: "การจองของฉัน" },
+            { href: "/bookings", label: "การจองทั้งหมด" },
             { href: "/account", label: "บัญชี" },
           ]
-        : [{ href: "/services", label: "บริการทั้งหมด" }];
+        : role === "customer"
+          ? [
+              { href: "/services", label: "บริการ" },
+              { href: "/bookings", label: "การจองของฉัน" },
+              { href: "/account", label: "บัญชี" },
+            ]
+          : [{ href: "/services", label: "บริการทั้งหมด" }];
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur">

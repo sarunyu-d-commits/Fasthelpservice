@@ -99,11 +99,31 @@ export async function acceptBooking(formData: FormData) {
   }
 
   const supabase = await createClient();
+
+  const { data: provider } = await supabase
+    .from("provider_profiles")
+    .select("is_available")
+    .eq("id", auth.user.id)
+    .maybeSingle();
+
+  if (!provider || provider.is_available === false) {
+    redirect(`/provider?error=unavailable`);
+  }
+
   const booking = await loadBooking(supabase, bookingId);
 
   if (!booking || booking.provider_id || booking.status !== "pending") {
     redirect(`/provider?error=job-unavailable`);
   }
+
+  const { data: link } = await supabase
+    .from("provider_services")
+    .select("service_id")
+    .eq("provider_id", auth.user.id)
+    .eq("service_id", booking.service_id)
+    .maybeSingle();
+
+  if (!link) redirect(`/provider?error=service-mismatch`);
 
   const { error } = await supabase
     .from("bookings")

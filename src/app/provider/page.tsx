@@ -17,6 +17,7 @@ import {
   getOpenBookings,
   getProviderJobs,
   getProviderProfile,
+  getProviderServiceIds,
 } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 
@@ -26,6 +27,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   supabase: "ยังไม่ได้ตั้งค่า Supabase",
   "job-unavailable": "งานนี้ถูกช่างท่านอื่นรับไปแล้ว",
   forbidden: "คุณไม่มีสิทธิ์ดำเนินการนี้",
+  unavailable: "คุณปิดรับงานอยู่ กรุณาเปิดรับงานก่อน",
+  "service-mismatch": "งานนี้ไม่ตรงกับบริการที่คุณให้บริการ",
 };
 
 export default async function ProviderDashboardPage({
@@ -37,10 +40,11 @@ export default async function ProviderDashboardPage({
   if (!auth) redirect("/login?next=/provider");
   if (auth.profile?.role !== "provider") redirect("/bookings");
 
-  const [openJobs, myJobs, provider] = await Promise.all([
-    getOpenBookings(),
+  const [openJobs, myJobs, provider, serviceIds] = await Promise.all([
+    getOpenBookings(auth.user.id),
     getProviderJobs(auth.user.id),
     getProviderProfile(auth.user.id),
+    getProviderServiceIds(auth.user.id),
   ]);
 
   const { error } = await searchParams;
@@ -108,6 +112,27 @@ export default async function ProviderDashboardPage({
         </dl>
       </div>
 
+      {provider?.is_available === false ? (
+        <div className="mt-4">
+          <Alert tone="info">
+            คุณปิดรับงานอยู่ เปิดรับงานได้ที่หน้า{" "}
+            <Link href="/provider/profile" className="font-semibold underline">
+              โปรไฟล์ช่าง
+            </Link>
+          </Alert>
+        </div>
+      ) : serviceIds.length === 0 ? (
+        <div className="mt-4">
+          <Alert tone="info">
+            ยังไม่ได้เลือกบริการที่ให้ เลือกบริการได้ที่หน้า{" "}
+            <Link href="/provider/profile" className="font-semibold underline">
+              โปรไฟล์ช่าง
+            </Link>{" "}
+            เพื่อเริ่มรับงาน
+          </Alert>
+        </div>
+      ) : null}
+
       <section className="mt-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900">งานที่รอรับ</h2>
@@ -118,7 +143,7 @@ export default async function ProviderDashboardPage({
           <div className="mt-3">
             <EmptyState
               title="ยังไม่มีงานใหม่"
-              description="เมื่อมีลูกค้าจองบริการ งานจะแสดงที่นี่"
+              description="เมื่อมีลูกค้าจองบริการที่ตรงกับคุณ งานจะแสดงที่นี่"
             />
           </div>
         ) : (
@@ -142,7 +167,7 @@ export default async function ProviderDashboardPage({
                     </p>
                     <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                       <MapPinIcon className="size-4 shrink-0" />
-                      <span className="truncate">{job.address}</span>
+                      <span>ที่อยู่จะแสดงหลังคุณรับงาน</span>
                     </p>
                     <p className="mt-2 text-sm font-bold text-teal-700">
                       {formatTHB(job.price)}

@@ -110,6 +110,37 @@ as $$
   );
 $$;
 
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+-- ช่างคนนี้เปิดรับงานและให้บริการประเภทนี้อยู่หรือไม่
+create or replace function public.provider_matches_service(p_service_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.provider_profiles pp
+    join public.provider_services ps on ps.provider_id = pp.id
+    where pp.id = auth.uid()
+      and pp.is_available = true
+      and ps.service_id = p_service_id
+  );
+$$;
+
 create or replace function public.is_booking_participant(p_booking_id uuid)
 returns boolean
 language sql
@@ -317,12 +348,13 @@ alter table public.messages enable row level security;
 alter table public.reviews enable row level security;
 
 -- profiles
+-- ข้อมูลส่วนตัว (รวมเบอร์โทร) เห็นได้เฉพาะเจ้าของ ผู้ที่มีการจองร่วมกัน และแอดมิน
 drop policy if exists "profiles are readable" on public.profiles;
 create policy "profiles are readable" on public.profiles
   for select using (
     id = auth.uid()
-    or role = 'provider'
     or public.shares_booking_with(id)
+    or public.is_admin()
   );
 
 drop policy if exists "users insert own profile" on public.profiles;
@@ -336,7 +368,11 @@ create policy "users update own profile" on public.profiles
 -- services
 drop policy if exists "services are readable" on public.services;
 create policy "services are readable" on public.services
-  for select using (is_active or public.is_provider());
+  for select using (is_active or public.is_provider() or public.is_admin());
+
+drop policy if exists "admins manage services" on public.services;
+create policy "admins manage services" on public.services
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- provider_profiles
 drop policy if exists "provider profiles are readable" on public.provider_profiles;
@@ -351,6 +387,10 @@ drop policy if exists "providers update own profile" on public.provider_profiles
 create policy "providers update own profile" on public.provider_profiles
   for update using (id = auth.uid() and public.is_provider())
   with check (id = auth.uid() and public.is_provider());
+
+drop policy if exists "admins manage provider profiles" on public.provider_profiles;
+create policy "admins manage provider profiles" on public.provider_profiles
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- provider_services
 drop policy if exists "provider services are readable" on public.provider_services;
@@ -368,7 +408,8 @@ create policy "participants can read bookings" on public.bookings
   for select using (
     customer_id = auth.uid()
     or provider_id = auth.uid()
-    or (provider_id is null and status = 'pending' and public.is_provider())
+    or (provider_id is null and status = 'pending' and public.provider_matches_service(service_id))
+    or public.is_admin()
   );
 
 drop policy if exists "customers create bookings" on public.bookings;
@@ -385,10 +426,12 @@ create policy "participants update bookings" on public.bookings
   for update using (
     customer_id = auth.uid()
     or provider_id = auth.uid()
-    or (provider_id is null and status = 'pending' and public.is_provider())
+    or (provider_id is null and status = 'pending' and public.provider_matches_service(service_id))
+    or public.is_admin()
   ) with check (
     customer_id = auth.uid()
     or provider_id = auth.uid()
+    or public.is_admin()
   );
 
 -- messages
@@ -425,7 +468,8 @@ create policy "customers review completed bookings" on public.reviews
 -- ---------------------------------------------------------------------------
 
 grant usage on schema public to anon, authenticated;
-grant select on public.services, public.profiles, public.provider_profiles,
+-- ไม่ grant select บน profiles ให้ anon เพื่อไม่ให้เบอร์โทรช่างรั่วไหลแบบสาธารณะ
+grant select on public.services, public.provider_profiles,
   public.provider_services, public.reviews to anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;
 grant select, insert, update on public.provider_profiles to authenticated;
@@ -433,6 +477,14 @@ grant select, insert, delete on public.provider_services to authenticated;
 grant select, insert, update on public.bookings to authenticated;
 grant select, insert on public.messages to authenticated;
 grant insert on public.reviews to authenticated;
+grant update on public.services to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Admin bootstrap
+-- ---------------------------------------------------------------------------
+-- สร้างแอดมินคนแรกด้วยการรันใน SQL Editor (auth.uid() เป็น null จึงไม่ติด trigger):
+-- update public.profiles set role = 'admin'
+-- where id = (select id from auth.users where email = 'admin@example.com');
 
 -- ---------------------------------------------------------------------------
 -- Realtime (chat)

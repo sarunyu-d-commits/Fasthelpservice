@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
@@ -28,6 +29,20 @@ function translateAuthError(message: string) {
 function safeNext(value: FormDataEntryValue | null) {
   const next = typeof value === "string" ? value : "";
   return next.startsWith("/") && !next.startsWith("//") ? next : "";
+}
+
+async function getOrigin() {
+  const configured = process.env.NEXT_PUBLIC_APP_URL;
+  if (configured) return configured.replace(/\/$/, "");
+
+  const headerList = await headers();
+  const host =
+    headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "localhost:3000";
+  const proto =
+    headerList.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
+
+  return `${proto}://${host}`;
 }
 
 export async function signIn(
@@ -82,11 +97,15 @@ export async function signUp(
   }
 
   const supabase = await createClient();
+  const origin = await getOrigin();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { full_name: fullName, phone, role },
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
+        role === "provider" ? "/provider" : "/bookings",
+      )}`,
     },
   });
 
@@ -100,6 +119,69 @@ export async function signUp(
   }
 
   redirect(role === "provider" ? "/provider" : "/bookings");
+}
+
+export async function requestPasswordReset(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  if (!isSupabaseConfigured()) {
+    return {
+      error:
+        "ยังไม่ได้ตั้งค่า Supabase กรุณาใส่ NEXT_PUBLIC_SUPABASE_URL และ NEXT_PUBLIC_SUPABASE_ANON_KEY ใน .env.local",
+    };
+  }
+
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) return { error: "กรุณากรอกอีเมล" };
+
+  const supabase = await createClient();
+  const origin = await getOrigin();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/reset-password")}`,
+  });
+
+  if (error) return { error: translateAuthError(error.message) };
+
+  return {
+    message:
+      "ส่งลิงก์รีเซ็ตรหัสผ่านไปที่อีเมลแล้ว กรุณาตรวจสอบกล่องจดหมายหรือโฟลเดอร์สแปม",
+  };
+}
+
+export async function updatePassword(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  if (!isSupabaseConfigured()) {
+    return { error: "ยังไม่ได้ตั้งค่า Supabase" };
+  }
+
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirm_password") ?? "");
+
+  if (password.length < 6) {
+    return { error: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" };
+  }
+  if (password !== confirmPassword) {
+    return { error: "รหัสผ่านทั้งสองช่องไม่ตรงกัน" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      error: "ลิงก์รีเซ็ตรหัสผ่านหมดอายุหรือยังไม่ได้เข้าสู่ระบบ กรุณาขอลิงก์ใหม่",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: translateAuthError(error.message) };
+
+  return { message: "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว" };
 }
 
 export async function signOut() {

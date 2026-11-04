@@ -2,7 +2,13 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { signIn, signUp, type AuthFormState } from "@/app/actions/auth";
+import {
+  requestPasswordReset,
+  signIn,
+  signUp,
+  updatePassword,
+  type AuthFormState,
+} from "@/app/actions/auth";
 import { Alert, SubmitButton, inputClass, labelClass } from "./form";
 
 const initialState: AuthFormState = {};
@@ -44,6 +50,15 @@ export function LoginForm({ next }: { next?: string }) {
         />
       </div>
 
+      <div className="-mt-1 text-right">
+        <Link
+          href="/forgot-password"
+          className="text-sm font-medium text-teal-600 hover:underline"
+        >
+          ลืมรหัสผ่าน?
+        </Link>
+      </div>
+
       <input type="hidden" name="next" value={next ?? ""} />
 
       <SubmitButton pendingText="กำลังเข้าสู่ระบบ...">
@@ -56,6 +71,108 @@ export function LoginForm({ next }: { next?: string }) {
           สมัครสมาชิก
         </Link>
       </p>
+    </form>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [state, action] = useActionState(requestPasswordReset, initialState);
+
+  return (
+    <form action={action} className="space-y-4">
+      {state?.error ? <Alert>{state.error}</Alert> : null}
+      {state?.message ? <Alert tone="success">{state.message}</Alert> : null}
+
+      <div>
+        <label htmlFor="email" className={labelClass}>
+          อีเมลที่ใช้สมัคร
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="you@example.com"
+          className={inputClass}
+        />
+      </div>
+
+      <SubmitButton pendingText="กำลังส่งลิงก์...">
+        ส่งลิงก์รีเซ็ตรหัสผ่าน
+      </SubmitButton>
+
+      <p className="text-center text-sm text-slate-500">
+        จำรหัสผ่านได้แล้ว?{" "}
+        <Link href="/login" className="font-semibold text-teal-600">
+          กลับไปเข้าสู่ระบบ
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+export function PasswordForm({
+  submitLabel = "บันทึกรหัสผ่านใหม่",
+  pendingText = "กำลังบันทึก...",
+  successHref,
+}: {
+  submitLabel?: string;
+  pendingText?: string;
+  successHref?: string;
+}) {
+  const [state, action] = useActionState(updatePassword, initialState);
+
+  return (
+    <form action={action} className="space-y-4">
+      {state?.error ? <Alert>{state.error}</Alert> : null}
+      {state?.message ? (
+        <Alert tone="success">
+          {state.message}
+          {successHref ? (
+            <>
+              {" "}
+              <Link href={successHref} className="font-semibold underline">
+                ไปที่บัญชีของฉัน
+              </Link>
+            </>
+          ) : null}
+        </Alert>
+      ) : null}
+
+      <div>
+        <label htmlFor="password" className={labelClass}>
+          รหัสผ่านใหม่
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={6}
+          placeholder="อย่างน้อย 6 ตัวอักษร"
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="confirm_password" className={labelClass}>
+          ยืนยันรหัสผ่านใหม่
+        </label>
+        <input
+          id="confirm_password"
+          name="confirm_password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={6}
+          placeholder="กรอกรหัสผ่านอีกครั้ง"
+          className={inputClass}
+        />
+      </div>
+
+      <SubmitButton pendingText={pendingText}>{submitLabel}</SubmitButton>
     </form>
   );
 }
