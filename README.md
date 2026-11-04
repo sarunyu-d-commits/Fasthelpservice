@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FastHelp
 
-## Getting Started
+แอปเรียกช่างและบริการถึงบ้าน — ล้างแอร์ ทำความสะอาด เปลี่ยนแบตเตอรี่ ซ่อมไฟฟ้า และอื่น ๆ
 
-First, run the development server:
+สร้างด้วย Next.js 16 (App Router) + Tailwind CSS + Supabase และพร้อมต่อยอดเป็นแอป iOS/Android ผ่าน Capacitor
+
+## ฟีเจอร์
+
+- สมัคร/เข้าสู่ระบบด้วยอีเมล (Supabase Auth) แยกบทบาทลูกค้า/ผู้ให้บริการ
+- แค็ตตาล็อกบริการ + หมวดหมู่ + หน้ารายละเอียด
+- จองคิว เลือกวันเวลา ที่อยู่ และรายละเอียดงาน
+- แดชบอร์ดช่าง: รับงาน อัปเดตสถานะ ดูข้อมูลลูกค้า
+- แชทระหว่างลูกค้าและช่าง (Supabase Realtime)
+- ชำระเงินด้วย PromptPay QR (เดโม: ยืนยันการชำระด้วยตนเอง)
+- รีวิวและให้คะแนนผู้ให้บริการ
+- PWA (ติดตั้งบนมือถือได้) + โครง Capacitor สำหรับ App Store / Play Store
+
+## เริ่มต้นใช้งาน
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+แก้ไข `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxxx
+NEXT_PUBLIC_PROMPTPAY_ID=0812345678
+NEXT_PUBLIC_PROMPTPAY_NAME=FastHelp
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+จากนั้นรัน `npm run dev` เปิด http://localhost:3000
 
-## Learn More
+## ตั้งค่า Supabase
 
-To learn more about Next.js, take a look at the following resources:
+1. สร้างโปรเจกต์ที่ https://supabase.com
+2. เปิด **SQL Editor** แล้วรันไฟล์ [`supabase/schema.sql`](supabase/schema.sql) ทั้งไฟล์
+   - สร้างตาราง, RLS policies, triggers, realtime และข้อมูลบริการเริ่มต้น
+   - หากเคยรันไปแล้ว ให้รันซ้ำเพื่ออัปเดต policy/trigger ล่าสุด
+3. ไปที่ **Project Settings → API** คัดลอก `Project URL` และ `anon public key` ใส่ `.env.local`
+4. (แนะนำสำหรับทดสอบ) **Authentication → Providers → Email** ปิด "Confirm email"
+   เพื่อให้สมัครแล้วเข้าใช้งานได้ทันที
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### บทบาทผู้ใช้
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- เลือก "ลูกค้า" หรือ "ผู้ให้บริการ" ตอนสมัคร
+- ผู้ให้บริการควรไปที่ **โปรไฟล์ช่าง** เพื่อเลือกบริการที่รับและพื้นที่ให้บริการ
 
-## Deploy on Vercel
+## ชำระเงิน (เดโม)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- แสดง PromptPay QR จาก `NEXT_PUBLIC_PROMPTPAY_ID` และยอดเงินของการจอง
+- ลูกค้ากด "ฉันชำระเงินแล้ว" เพื่อเปลี่ยนสถานะเป็นชำระแล้ว
+- ยังไม่เชื่อมต่อเกตเวย์จริง หากต้องการต่อ Omise/Opn Payments หรือ Stripe
+  ให้เพิ่ม API route และ webhook แล้วอัปเดต `payment_status` ในตาราง `bookings`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ตรวจสอบโค้ด
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
+
+## Mobile app (Capacitor)
+
+แอปนี้เป็น SSR จึงใช้ Capacitor เป็น wrapper โหลดเว็บที่ deploy แล้ว:
+
+```bash
+# ตั้ง URL ของเว็บที่ deploy (ต้องเป็น https)
+$env:NEXT_PUBLIC_APP_URL="https://your-domain.com"
+
+npm run cap:add:android   # ครั้งแรกครั้งเดียว
+npm run cap:add:ios       # ครั้งแรกครั้งเดียว (ต้องใช้ macOS + Xcode)
+npm run cap:sync
+npm run cap:open:android  # เปิดใน Android Studio
+npm run cap:open:ios      # เปิดใน Xcode
+```
+
+หรือติดตั้งเป็น PWA จากเบราว์เซอร์ (Add to Home Screen) ได้ทันที
+
+## โครงสร้างหลัก
+
+```
+src/app/                 หน้าเว็บและ server actions
+src/components/          UI components
+src/lib/data.ts          การดึงข้อมูลจาก Supabase
+src/lib/supabase/        client/server/proxy helpers
+supabase/schema.sql      schema + RLS + seed data
+public/                  manifest, service worker, icons
+capacitor.config.ts      config สำหรับ iOS/Android
+```

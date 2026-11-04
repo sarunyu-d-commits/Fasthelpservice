@@ -1,0 +1,42 @@
+{
+  "name": "FastHelp — เรียกช่างและบริการถึงบ้าน",
+  "short_name": "FastHelp",
+  "description": "เรียกช่างและบริการถึงบ้าน ล้างแอร์ ทำความสะอาด เปลี่ยนแบตเตอรี่ ซ่อมไฟฟ้า และอีกมากมาย",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f8fb",
+  "theme_color": "#0f766e",
+  "lang": "th",
+  "categories": ["services", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "บริการทั้งหมด",
+      "url": "/services"
+    },
+    {
+      "name": "การจองของฉัน",
+      "url": "/bookings"
+    }
+  ]
+}
