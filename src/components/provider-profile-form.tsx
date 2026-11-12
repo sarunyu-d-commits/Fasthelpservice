@@ -70,12 +70,12 @@ export function ProviderProfileForm({
         </div>
       </div>
 
-      <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+      <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3">
         <input
           type="checkbox"
           name="is_available"
           defaultChecked={provider?.is_available ?? true}
-          className="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+          className="size-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
         />
         <span className="text-sm font-medium text-slate-700">
           เปิดรับงานใหม่
@@ -88,14 +88,14 @@ export function ProviderProfileForm({
           {services.map((service) => (
             <label
               key={service.id}
-              className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+              className="flex cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm transition hover:border-blue-200"
             >
               <input
                 type="checkbox"
                 name="service_ids"
                 value={service.id}
                 defaultChecked={selectedServiceIds.includes(service.id)}
-                className="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                className="size-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-lg">{service.icon}</span>
               <span className="text-slate-700">{service.name}</span>

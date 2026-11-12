@@ -43,8 +43,12 @@ export default async function AdminPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="flex items-center gap-2">
-        <ShieldIcon className="size-6 text-teal-600" />
-        <h1 className="text-2xl font-bold text-slate-900">ผู้ดูแลระบบ</h1>
+        <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-sky-50 text-blue-600 ring-1 ring-blue-100/70">
+          <ShieldIcon className="size-5" />
+        </span>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">
+          ผู้ดูแลระบบ
+        </h1>
       </div>
       <p className="mt-1 text-sm text-slate-500">
         ตรวจสอบช่าง ยืนยันตัวตน และจัดการบริการในระบบ
@@ -70,16 +74,16 @@ export default async function AdminPage({
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+            className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-card"
           >
             <dt className="text-sm text-slate-500">{stat.label}</dt>
-            <dd className="mt-1 text-2xl font-bold text-slate-900">{stat.value}</dd>
+            <dd className="mt-1 font-display text-2xl font-extrabold text-ink">{stat.value}</dd>
           </div>
         ))}
       </dl>
 
       <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-900">ผู้ให้บริการ</h2>
+        <h2 className="font-display text-lg font-bold text-ink">ผู้ให้บริการ</h2>
         {providers.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">ยังไม่มีผู้ให้บริการในระบบ</p>
         ) : (
@@ -87,7 +91,7 @@ export default async function AdminPage({
             {providers.map((provider) => (
               <div
                 key={provider.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-card"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -128,10 +132,10 @@ export default async function AdminPage({
                     />
                     <button
                       type="submit"
-                      className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition ${
+                      className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${
                         provider.is_verified
-                          ? "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                          : "bg-teal-600 text-white hover:bg-teal-700"
+                          ? "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                          : "bg-gradient-to-r from-blue-600 to-sky-600 text-white shadow-lg shadow-blue-600/25 hover:from-blue-700 hover:to-sky-700"
                       }`}
                     >
                       {provider.is_verified ? "ยกเลิกการยืนยัน" : "ยืนยันช่าง"}
@@ -145,8 +149,8 @@ export default async function AdminPage({
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-900">บริการ</h2>
-        <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <h2 className="font-display text-lg font-bold text-ink">บริการ</h2>
+        <div className="mt-3 overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-card">
           {services.map((service) => (
             <div
               key={service.id}
@@ -169,10 +173,10 @@ export default async function AdminPage({
                 />
                 <button
                   type="submit"
-                  className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition ${
+                  className={`rounded-full px-3.5 py-2 text-xs font-semibold transition ${
                     service.is_active
-                      ? "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                      : "bg-teal-600 text-white hover:bg-teal-700"
+                      ? "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      : "bg-gradient-to-r from-blue-600 to-sky-600 text-white shadow-lg shadow-blue-600/25 hover:from-blue-700 hover:to-sky-700"
                   }`}
                 >
                   {service.is_active ? "ปิดใช้งาน" : "เปิดใช้งาน"}
@@ -185,8 +189,8 @@ export default async function AdminPage({
 
       <section className="mt-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">การจองล่าสุด</h2>
-          <Link href="/bookings" className="text-sm font-medium text-teal-600">
+          <h2 className="font-display text-lg font-bold text-ink">การจองล่าสุด</h2>
+          <Link href="/bookings" className="text-sm font-medium text-blue-600 hover:text-blue-700">
             ดูทั้งหมด
           </Link>
         </div>
@@ -198,7 +202,7 @@ export default async function AdminPage({
               <Link
                 key={booking.id}
                 href={`/bookings/${booking.id}`}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm transition hover:border-teal-300"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm shadow-card transition hover:border-blue-200"
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium text-slate-900">

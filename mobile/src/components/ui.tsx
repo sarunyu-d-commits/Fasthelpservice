@@ -20,7 +20,7 @@ import {
   PAYMENT_STATUS_LABEL,
 } from "@/lib/constants";
 import type { BookingStatus, PaymentStatus } from "@/lib/types";
-import { colors, font, radius, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 export function Screen({
   children,
@@ -111,7 +111,7 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === "primary" ? colors.white : colors.teal700}
+          color={variant === "primary" ? colors.white : colors.blue700}
         />
       ) : (
         <Text
@@ -151,6 +151,37 @@ export function TextField({
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {!error && hint ? <Text style={styles.hint}>{hint}</Text> : null}
+    </View>
+  );
+}
+
+export function IconBubble({
+  icon,
+  size = 48,
+  tone = "blue",
+}: {
+  icon: string;
+  size?: number;
+  tone?: "blue" | "slate" | "sky";
+}) {
+  return (
+    <View
+      style={[
+        styles.iconBubble,
+        {
+          width: size,
+          height: size,
+          borderRadius: size * 0.34,
+          backgroundColor:
+            tone === "blue"
+              ? colors.blue50
+              : tone === "sky"
+                ? colors.sky50
+                : colors.slate50,
+        },
+      ]}
+    >
+      <Text style={{ fontSize: size * 0.5 }}>{icon}</Text>
     </View>
   );
 }
@@ -216,7 +247,9 @@ export function EmptyState({
 }) {
   return (
     <View style={styles.empty}>
-      <Text style={styles.emptyIcon}>{icon}</Text>
+      <View style={styles.emptyIconWrap}>
+        <Text style={styles.emptyIcon}>{icon}</Text>
+      </View>
       <Text style={styles.emptyTitle}>{title}</Text>
       {description ? (
         <Text style={styles.emptyDescription}>{description}</Text>
@@ -229,7 +262,7 @@ export function EmptyState({
 export function LoadingView({ label = "กำลังโหลด..." }: { label?: string }) {
   return (
     <View style={styles.loading}>
-      <ActivityIndicator color={colors.teal600} size="large" />
+      <ActivityIndicator color={colors.blue600} size="large" />
       <Text style={styles.loadingText}>{label}</Text>
     </View>
   );
@@ -287,7 +320,7 @@ export function Divider() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.slate50,
+    backgroundColor: colors.cream,
   },
   screenContent: {
     flexGrow: 1,
@@ -309,29 +342,32 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    fontSize: 24,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 26,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.6,
+    color: colors.ink,
   },
   subtitle: {
     fontSize: 14,
+    lineHeight: 20,
     color: colors.slate500,
   },
   button: {
-    minHeight: 48,
-    borderRadius: radius.md,
+    minHeight: 50,
+    borderRadius: radius.full,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.lg,
     flexDirection: "row",
   },
   buttonPrimary: {
-    backgroundColor: colors.teal600,
+    backgroundColor: colors.blue600,
+    ...shadow.card,
   },
   buttonSecondary: {
-    backgroundColor: colors.teal50,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.teal100,
+    borderColor: colors.slate200,
   },
   buttonDanger: {
     backgroundColor: colors.rose50,
@@ -355,13 +391,13 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   buttonTextSecondary: {
-    color: colors.teal700,
+    color: colors.blue700,
   },
   buttonTextDanger: {
     color: colors.rose700,
   },
   buttonTextGhost: {
-    color: colors.teal700,
+    color: colors.blue700,
   },
   fieldWrap: {
     gap: spacing.xs,
@@ -373,12 +409,12 @@ const styles = StyleSheet.create({
     color: colors.slate700,
   },
   input: {
-    minHeight: 48,
+    minHeight: 50,
     borderWidth: 1,
     borderColor: colors.slate200,
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
+    backgroundColor: colors.slate50,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: 15,
     color: colors.slate900,
@@ -396,11 +432,12 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     borderWidth: 1,
     borderColor: colors.slate200,
-    padding: spacing.lg,
+    padding: spacing.lg + 2,
     gap: spacing.sm,
+    ...shadow.card,
   },
   badge: {
     alignSelf: "flex-start",
@@ -419,13 +456,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
   },
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.xl,
+    backgroundColor: colors.blue50,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.xs,
+  },
   emptyIcon: {
-    fontSize: 40,
+    fontSize: 30,
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: font.semibold,
-    color: colors.slate700,
+    fontSize: 17,
+    fontWeight: font.extrabold,
+    color: colors.ink,
     textAlign: "center",
   },
   emptyDescription: {
@@ -449,7 +495,7 @@ const styles = StyleSheet.create({
     color: colors.slate500,
   },
   alert: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     padding: spacing.md,
     marginBottom: spacing.md,
@@ -488,12 +534,19 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.3,
+    color: colors.ink,
   },
   divider: {
     height: 1,
     backgroundColor: colors.slate200,
     marginVertical: spacing.md,
+  },
+  iconBubble: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.blue100,
   },
 });

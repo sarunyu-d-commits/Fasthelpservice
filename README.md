@@ -33,6 +33,10 @@ NEXT_PUBLIC_PROMPTPAY_NAME=FastHelp
 
 จากนั้นรัน `npm run dev` เปิด http://localhost:3000
 
+เว็บและแอป Expo (`mobile/`) ใช้โปรเจกต์ Supabase **ชุดเดียวกัน** — ใส่ URL และ anon key
+ค่าเดียวกันทั้ง `NEXT_PUBLIC_*` (เว็บ) และ `EXPO_PUBLIC_*` (แอป) ข้อมูลบริการ การจอง
+โปรไฟล์ช่าง และแชทจึงถูกแชร์ระหว่างสองแพลตฟอร์มทันที
+
 ## ตั้งค่า Supabase
 
 1. สร้างโปรเจกต์ที่ https://supabase.com
@@ -80,6 +84,20 @@ npm run cap:open:ios      # เปิดใน Xcode
 
 หรือติดตั้งเป็น PWA จากเบราว์เซอร์ (Add to Home Screen) ได้ทันที
 
+## แอปมือถือ (Expo)
+
+มีแอปเนทีฟใน `mobile/` ที่เชื่อม Supabase ชุดเดียวกับเว็บ:
+
+```bash
+cd mobile
+npm install
+cp .env.example .env
+# ใส่ค่าเดียวกับ .env.local ของเว็บ แต่เปลี่ยน prefix เป็น EXPO_PUBLIC_
+npm start
+```
+
+รัน `npm run lint` ใน `mobile/` เพื่อตรวจสอบโค้ดแอป
+
 ## โครงสร้างหลัก
 
 ```
@@ -88,6 +106,7 @@ src/components/          UI components
 src/lib/data.ts          การดึงข้อมูลจาก Supabase
 src/lib/supabase/        client/server/proxy helpers
 supabase/schema.sql      schema + RLS + seed data
+mobile/                  แอป Expo (ใช้ Supabase โปรเจกต์เดียวกับเว็บ)
 public/                  manifest, service worker, icons
 capacitor.config.ts      config สำหรับ iOS/Android
 ```

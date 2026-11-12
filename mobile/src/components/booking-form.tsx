@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   summaryTotalValue: {
     fontSize: 20,
     fontWeight: font.bold,
-    color: colors.teal700,
+    color: colors.blue700,
   },
   summaryNote: {
     fontSize: 11,

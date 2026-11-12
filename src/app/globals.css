@@ -6,20 +6,50 @@
 
 @theme inline {
   --font-sans: var(--font-noto-thai);
+  --font-display: var(--font-prompt);
+
+  --color-ink: #0b1b34;
+  --color-navy: #0b1b34;
+  --color-cream: #f4f8fd;
+  --color-brand: #2563eb;
+  --color-brand-dark: #1d4ed8;
+  --color-accent: #0ea5e9;
+
+  --shadow-soft: 0 18px 40px -24px rgb(37 99 235 / 0.35);
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px -18px rgb(37 99 235 / 0.24);
 }
 
 html {
   -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: #f6f8fb;
+  background:
+    radial-gradient(1000px 520px at 8% -10%, #dbeafe 0%, transparent 55%),
+    radial-gradient(900px 500px at 96% 2%, #e0f2fe 0%, transparent 52%),
+    #eef4fb;
   color: #0f172a;
   font-family: var(--font-noto-thai), system-ui, sans-serif;
 }
 
 ::selection {
-  background: #99f6e4;
+  background: #bfdbfe;
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -28,4 +58,88 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.bg-dots {
+  background-image: radial-gradient(rgb(37 99 235 / 0.18) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-float-slow {
+  animation: float-slow 9s ease-in-out infinite;
+}
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out both;
+}
+.animate-pop-in {
+  animation: pop-in 0.5s ease-out both;
+}
+.anim-delay-1 {
+  animation-delay: 0.08s;
+}
+.anim-delay-2 {
+  animation-delay: 0.16s;
+}
+.anim-delay-3 {
+  animation-delay: 0.24s;
+}
+.anim-delay-4 {
+  animation-delay: 0.32s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-float,
+  .animate-float-slow,
+  .animate-fade-up,
+  .animate-pop-in {
+    animation: none;
+  }
 }

@@ -18,7 +18,7 @@ export default function RootLayout() {
             <Stack
               screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: colors.slate50 },
+                contentStyle: { backgroundColor: colors.cream },
               }}
             />
             <BottomNav />
@@ -32,6 +32,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.slate50,
+    backgroundColor: colors.cream,
   },
 });

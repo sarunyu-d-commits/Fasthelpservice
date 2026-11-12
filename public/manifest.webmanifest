@@ -6,8 +6,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f6f8fb",
-  "theme_color": "#0f766e",
+  "background_color": "#eef4fb",
+  "theme_color": "#1d4ed8",
   "lang": "th",
   "categories": ["services", "lifestyle"],
   "icons": [

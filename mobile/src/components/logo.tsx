@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.lg,
-    backgroundColor: colors.teal600,
+    backgroundColor: colors.blue600,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   nameAccent: {
-    color: colors.teal600,
+    color: colors.blue600,
   },
   tagline: {
     marginTop: 2,

@@ -34,13 +34,18 @@ export default async function ProviderProfilePage() {
       </Link>
 
       <div className="mt-4">
-        <h1 className="text-2xl font-bold text-slate-900">โปรไฟล์ผู้ให้บริการ</h1>
+        <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+          โปรไฟล์ช่าง
+        </p>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
+          โปรไฟล์ผู้ให้บริการ
+        </h1>
         <p className="mt-1 text-sm text-slate-500">
           ข้อมูลนี้จะแสดงให้ลูกค้าเห็นเมื่อคุณรับงาน
         </p>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mt-5 rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
         <ProviderProfileForm
           services={services}
           selectedServiceIds={selectedServiceIds}

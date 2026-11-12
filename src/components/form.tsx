@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
 export const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20";
+  "w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10";
 
 export const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
 
@@ -22,7 +22,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={pending}
-      className={`inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-sky-700 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     >
       {pending ? pendingText : children}
     </button>
@@ -43,7 +43,7 @@ export function Alert({
   } as const;
 
   return (
-    <div className={`rounded-xl border px-3.5 py-2.5 text-sm ${styles[tone]}`}>
+    <div className={`rounded-2xl border px-3.5 py-2.5 text-sm ${styles[tone]}`}>
       {children}
     </div>
   );

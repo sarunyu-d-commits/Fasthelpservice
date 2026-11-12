@@ -15,7 +15,7 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import type { Service } from "@/lib/types";
 import { useAsyncData } from "@/lib/use-async-data";
 import { useAuth } from "@/providers/auth";
-import { colors, font, radius, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 const steps = [
   {
@@ -54,8 +54,10 @@ function PopularCard({ service }: { service: Service }) {
   return (
     <Link href={`/services/${service.slug}`} asChild>
       <Pressable style={({ pressed }) => [styles.popularCard, pressed && styles.pressed]}>
-        <Text style={styles.popularIcon}>{service.icon ?? "🛠️"}</Text>
-        <Text style={styles.popularName} numberOfLines={1}>
+        <View style={styles.popularIconWrap}>
+          <Text style={styles.popularIcon}>{service.icon ?? "🛠️"}</Text>
+        </View>
+        <Text style={styles.popularName} numberOfLines={2}>
           {service.name}
         </Text>
         <Text style={styles.popularPrice}>
@@ -116,6 +118,8 @@ export default function HomeScreen() {
       ) : null}
 
       <View style={styles.hero}>
+        <View style={styles.heroGlowA} />
+        <View style={styles.heroGlowB} />
         <View style={styles.badge}>
           <Text style={styles.badgeText}>⚡ บริการถึงบ้าน ภายใน 60 นาที</Text>
         </View>
@@ -245,9 +249,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   accountButton: {
-    borderRadius: radius.md,
+    borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: colors.slate200,
+    borderColor: colors.blue100,
     backgroundColor: colors.white,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -255,7 +259,7 @@ const styles = StyleSheet.create({
   accountButtonText: {
     fontSize: 13,
     fontWeight: font.semibold,
-    color: colors.teal700,
+    color: colors.blue700,
   },
   demoNotice: {
     borderRadius: radius.md,
@@ -276,34 +280,61 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: spacing.md,
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    backgroundColor: colors.blue50,
+    padding: spacing.xl,
+    overflow: "hidden",
+    ...shadow.card,
+  },
+  heroGlowA: {
+    position: "absolute",
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    backgroundColor: colors.blue100,
+    opacity: 0.6,
+    top: -80,
+    right: -60,
+  },
+  heroGlowB: {
+    position: "absolute",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: colors.sky100,
+    opacity: 0.7,
+    bottom: -70,
+    left: -40,
   },
   badge: {
     alignSelf: "flex-start",
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: colors.teal100,
-    backgroundColor: colors.teal50,
+    borderColor: colors.blue200,
+    backgroundColor: colors.white,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   badgeText: {
     fontSize: 12,
     fontWeight: font.semibold,
-    color: colors.teal700,
+    color: colors.blue700,
   },
   heroTitle: {
-    fontSize: 34,
-    lineHeight: 42,
-    fontWeight: font.bold,
-    letterSpacing: -0.8,
-    color: colors.slate900,
+    fontSize: 33,
+    lineHeight: 41,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.9,
+    color: colors.ink,
   },
   heroAccent: {
-    color: colors.teal600,
+    color: colors.blue600,
   },
   heroText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 14,
+    lineHeight: 22,
     color: colors.slate600,
   },
   heroActions: {
@@ -312,21 +343,27 @@ const styles = StyleSheet.create({
   },
   stats: {
     flexDirection: "row",
-    gap: spacing.lg,
-    marginTop: spacing.md,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
   stat: {
     flex: 1,
     gap: 2,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.slate500,
   },
   statValue: {
-    fontSize: 19,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 17,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   card: {
     marginTop: spacing.xl,
@@ -350,7 +387,7 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 12,
     fontWeight: font.semibold,
-    color: colors.teal600,
+    color: colors.blue600,
   },
   popularGrid: {
     flexDirection: "row",
@@ -359,42 +396,56 @@ const styles = StyleSheet.create({
   },
   popularCard: {
     width: "48%",
-    borderRadius: radius.md,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
     padding: spacing.md,
+    ...shadow.card,
+  },
+  popularIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.blue50,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    alignItems: "center",
+    justifyContent: "center",
   },
   popularIcon: {
-    fontSize: 24,
+    fontSize: 22,
   },
   popularName: {
     marginTop: spacing.sm,
     fontSize: 13,
-    fontWeight: font.semibold,
-    color: colors.slate900,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.2,
+    color: colors.ink,
   },
   popularPrice: {
     marginTop: 2,
-    fontSize: 12,
-    color: colors.teal700,
+    fontSize: 11,
+    fontWeight: font.medium,
+    color: colors.blue700,
   },
   paymentNote: {
     marginTop: spacing.md,
     borderRadius: radius.md,
-    backgroundColor: colors.emerald50,
+    backgroundColor: colors.sky50,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   paymentNoteText: {
     fontSize: 12,
-    color: colors.emerald700,
+    color: colors.sky700,
   },
   sectionTitle: {
     marginTop: spacing.xl,
     fontSize: 21,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.4,
+    color: colors.ink,
   },
   sectionSubtitle: {
     marginTop: 2,
@@ -411,7 +462,7 @@ const styles = StyleSheet.create({
   stepCard: {
     flexDirection: "row",
     gap: spacing.md,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
@@ -421,7 +472,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: radius.full,
-    backgroundColor: colors.teal600,
+    backgroundColor: colors.blue600,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -436,8 +487,8 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 15,
-    fontWeight: font.semibold,
-    color: colors.slate900,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   stepText: {
     fontSize: 13,
@@ -447,10 +498,10 @@ const styles = StyleSheet.create({
   highlightCard: {
     flexDirection: "row",
     gap: spacing.md,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.slate200,
-    backgroundColor: colors.white,
+    borderColor: colors.sky100,
+    backgroundColor: colors.sky50,
     padding: spacing.lg,
   },
   highlightIcon: {
@@ -458,21 +509,22 @@ const styles = StyleSheet.create({
   },
   cta: {
     marginTop: spacing.xl,
-    borderRadius: radius.xl,
-    backgroundColor: colors.teal600,
+    borderRadius: radius.xxl,
+    backgroundColor: colors.blue600,
     padding: spacing.xl,
     gap: spacing.sm,
+    ...shadow.float,
   },
   ctaTitle: {
     fontSize: 20,
-    fontWeight: font.bold,
+    fontWeight: font.extrabold,
     color: colors.white,
     textAlign: "center",
   },
   ctaText: {
     fontSize: 13,
     lineHeight: 19,
-    color: colors.teal50,
+    color: colors.blue50,
     textAlign: "center",
     marginBottom: spacing.sm,
   },

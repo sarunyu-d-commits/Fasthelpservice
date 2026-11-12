@@ -136,18 +136,26 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     gap: spacing.sm,
-    marginBottom: spacing.xl,
-    marginTop: spacing.xl,
+    marginBottom: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    backgroundColor: colors.blue50,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   title: {
     marginTop: spacing.sm,
-    fontSize: 24,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 25,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.5,
+    color: colors.ink,
   },
   subtitle: {
     fontSize: 13,
-    color: colors.slate500,
+    lineHeight: 19,
+    color: colors.slate600,
     textAlign: "center",
   },
   label: {
@@ -163,7 +171,7 @@ const styles = StyleSheet.create({
   },
   roleCard: {
     flex: 1,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
@@ -171,13 +179,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   roleCardActive: {
-    borderColor: colors.teal600,
-    backgroundColor: colors.teal50,
+    borderColor: colors.blue600,
+    backgroundColor: colors.blue50,
   },
   roleTitle: {
     fontSize: 14,
-    fontWeight: font.semibold,
-    color: colors.slate900,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   roleDescription: {
     fontSize: 11,
@@ -190,7 +198,7 @@ const styles = StyleSheet.create({
     color: colors.slate500,
   },
   switchLink: {
-    fontWeight: font.semibold,
-    color: colors.teal600,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
   },
 });

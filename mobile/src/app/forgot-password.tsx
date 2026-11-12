@@ -12,7 +12,7 @@ import {
   TextField,
 } from "@/components/ui";
 import { useAuth } from "@/providers/auth";
-import { colors, font, spacing } from "@/theme";
+import { colors, font, radius, spacing } from "@/theme";
 
 export default function ForgotPasswordScreen() {
   const { user, loading, requestPasswordReset } = useAuth();
@@ -84,19 +84,26 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     gap: spacing.sm,
-    marginBottom: spacing.xl,
-    marginTop: spacing.xl,
+    marginBottom: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    backgroundColor: colors.blue50,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   title: {
     marginTop: spacing.sm,
-    fontSize: 24,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 25,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.5,
+    color: colors.ink,
   },
   subtitle: {
     fontSize: 13,
     lineHeight: 19,
-    color: colors.slate500,
+    color: colors.slate600,
     textAlign: "center",
   },
   switchText: {
@@ -106,7 +113,7 @@ const styles = StyleSheet.create({
     color: colors.slate500,
   },
   switchLink: {
-    fontWeight: font.semibold,
-    color: colors.teal600,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
   },
 });

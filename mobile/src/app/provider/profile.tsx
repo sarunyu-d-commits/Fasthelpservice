@@ -126,7 +126,7 @@ function ProviderProfileForm({
         <Switch
           value={isAvailable}
           onValueChange={setIsAvailable}
-          trackColor={{ false: colors.slate300, true: colors.teal600 }}
+          trackColor={{ false: colors.slate300, true: colors.blue600 }}
           thumbColor={colors.white}
         />
       </View>
@@ -217,13 +217,15 @@ const styles = StyleSheet.create({
     color: colors.slate500,
   },
   title: {
-    fontSize: 23,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 26,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.6,
+    color: colors.ink,
   },
   subtitle: {
     marginTop: 2,
     fontSize: 13,
+    lineHeight: 19,
     color: colors.slate500,
   },
   gap: {
@@ -241,10 +243,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.slate200,
-    backgroundColor: colors.white,
+    backgroundColor: colors.slate50,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
@@ -255,8 +257,8 @@ const styles = StyleSheet.create({
   },
   switchTitle: {
     fontSize: 14,
-    fontWeight: font.medium,
-    color: colors.slate700,
+    fontWeight: font.semibold,
+    color: colors.ink,
   },
   switchHint: {
     fontSize: 11,
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
@@ -284,21 +286,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   serviceItemActive: {
-    borderColor: colors.teal600,
-    backgroundColor: colors.teal50,
+    borderColor: colors.blue600,
+    backgroundColor: colors.blue50,
   },
   checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 5,
+    borderRadius: radius.sm - 2,
     borderWidth: 1,
     borderColor: colors.slate300,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxActive: {
-    backgroundColor: colors.teal600,
-    borderColor: colors.teal600,
+    backgroundColor: colors.blue600,
+    borderColor: colors.blue600,
   },
   checkboxText: {
     fontSize: 12,
@@ -311,6 +313,7 @@ const styles = StyleSheet.create({
   serviceName: {
     flex: 1,
     fontSize: 14,
-    color: colors.slate700,
+    fontWeight: font.medium,
+    color: colors.ink,
   },
 });

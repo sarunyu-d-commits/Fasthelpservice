@@ -17,16 +17,21 @@ export default async function BookingsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">การจองของฉัน</h1>
+          <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+            การจองของฉัน
+          </p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-ink">
+            ติดตามงานของคุณ
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
-            ติดตามสถานะงานและชำระเงินได้ที่นี่
+            ดูสถานะงาน ชำระเงิน และพูดคุยกับช่างได้ที่นี่
           </p>
         </div>
         <Link
           href="/services"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700"
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-sky-700"
         >
           <PlusIcon className="size-4" />
           จองใหม่
@@ -42,7 +47,7 @@ export default async function BookingsPage() {
             action={
               <Link
                 href="/services"
-                className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white"
+                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
                 ดูบริการทั้งหมด
               </Link>
@@ -55,35 +60,35 @@ export default async function BookingsPage() {
             <Link
               key={booking.id}
               href={`/bookings/${booking.id}`}
-              className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-teal-300 hover:shadow-md"
+              className="group block rounded-3xl border border-slate-200/70 bg-white p-4 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_24px_50px_-24px_rgba(37,99,235,0.45)]"
             >
               <div className="flex items-start gap-3">
-                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-teal-50 text-2xl">
+                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-sky-50 text-2xl ring-1 ring-blue-100/70">
                   {booking.service?.icon ?? "🛠️"}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-semibold text-slate-900">
+                    <h2 className="font-display font-bold text-ink">
                       {booking.service?.name ?? "บริการ"}
                     </h2>
                     <StatusBadge status={booking.status} />
                     <PaymentBadge status={booking.payment_status} />
                   </div>
                   <p className="mt-1.5 flex items-center gap-1.5 text-sm text-slate-500">
-                    <CalendarIcon className="size-4" />
+                    <CalendarIcon className="size-4 text-slate-400" />
                     {formatDateTime(booking.scheduled_at)}
                   </p>
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
-                    <MapPinIcon className="size-4 shrink-0" />
+                    <MapPinIcon className="size-4 shrink-0 text-slate-400" />
                     <span className="truncate">{booking.address}</span>
                   </p>
-                  <div className="mt-2 flex items-center justify-between">
+                  <div className="mt-3 flex items-center justify-between border-t border-dashed border-slate-100 pt-3">
                     <span className="text-xs text-slate-400">
                       {booking.provider?.full_name
                         ? `ช่าง: ${booking.provider.full_name}`
                         : "รอช่างรับงาน"}
                     </span>
-                    <span className="font-bold text-teal-700">
+                    <span className="font-display font-bold text-blue-700">
                       {formatTHB(booking.price)}
                     </span>
                   </div>

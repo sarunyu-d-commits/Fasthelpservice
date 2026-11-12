@@ -67,7 +67,7 @@ export function ChatBox({
   }, [messages]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm">
       <div
         ref={scrollRef}
         className="no-scrollbar flex h-72 flex-col gap-2 overflow-y-auto bg-slate-50/70 p-3"
@@ -87,7 +87,7 @@ export function ChatBox({
                 <div
                   className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
                     mine
-                      ? "rounded-br-sm bg-teal-600 text-white"
+                      ? "rounded-br-sm bg-gradient-to-br from-blue-600 to-sky-600 text-white"
                       : "rounded-bl-sm border border-slate-200 bg-white text-slate-800"
                   }`}
                 >
@@ -114,11 +114,11 @@ export function ChatBox({
           maxLength={2000}
           autoComplete="off"
           placeholder="พิมพ์ข้อความ..."
-          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+          className="min-w-0 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
         />
         <button
           type="submit"
-          className="grid size-10 shrink-0 place-items-center rounded-xl bg-teal-600 text-white transition hover:bg-teal-700"
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-sky-600 text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-sky-700"
           aria-label="ส่งข้อความ"
         >
           <SendIcon className="size-5" />

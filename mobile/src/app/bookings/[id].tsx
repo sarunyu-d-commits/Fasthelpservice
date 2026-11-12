@@ -430,7 +430,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: radius.lg,
-    backgroundColor: colors.teal50,
+    backgroundColor: colors.blue50,
+    borderWidth: 1,
+    borderColor: colors.blue100,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -448,9 +450,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    fontSize: 19,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 20,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.3,
+    color: colors.ink,
   },
   code: {
     fontSize: 12,
@@ -493,17 +496,18 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   totalValue: {
-    fontSize: 20,
-    fontWeight: font.bold,
-    color: colors.teal700,
+    fontSize: 21,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
   },
   gap: {
     marginTop: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 17,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.2,
+    color: colors.ink,
     marginBottom: spacing.sm,
   },
   muted: {
@@ -512,7 +516,7 @@ const styles = StyleSheet.create({
     color: colors.slate600,
   },
   mutedBox: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.slate100,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
@@ -521,14 +525,16 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   paidBox: {
-    borderRadius: radius.md,
-    backgroundColor: colors.emerald50,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.sky100,
+    backgroundColor: colors.sky50,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
   paidText: {
     fontSize: 13,
-    color: colors.emerald700,
+    color: colors.sky700,
   },
   paymentBox: {
     gap: spacing.md,
@@ -566,30 +572,30 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.full,
-    backgroundColor: colors.teal100,
+    backgroundColor: colors.blue100,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
     fontSize: 16,
     fontWeight: font.semibold,
-    color: colors.teal700,
+    color: colors.blue700,
   },
   providerBody: {
     flex: 1,
     gap: 2,
   },
   providerName: {
-    fontSize: 15,
-    fontWeight: font.medium,
-    color: colors.slate900,
+    fontSize: 16,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   providerRating: {
     fontSize: 12,
     color: colors.slate500,
   },
   cancelledBox: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.rose200,
     backgroundColor: colors.rose50,
@@ -617,7 +623,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timelineDotDone: {
-    backgroundColor: colors.teal600,
+    backgroundColor: colors.blue600,
   },
   timelineDotText: {
     fontSize: 11,
@@ -637,7 +643,7 @@ const styles = StyleSheet.create({
     color: colors.slate700,
   },
   timelineLabelActive: {
-    color: colors.teal700,
+    color: colors.blue700,
   },
   timelineHint: {
     fontSize: 11,

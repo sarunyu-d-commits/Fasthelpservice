@@ -103,7 +103,7 @@ export function BookingForm({
         </div>
         <div className="mt-2 flex items-center justify-between border-t border-dashed border-slate-300 pt-2">
           <span className="font-semibold text-slate-900">ยอดรวม (ประมาณ)</span>
-          <span className="text-lg font-bold text-teal-700">
+          <span className="text-lg font-bold text-blue-700">
             {formatTHB(total)}
           </span>
         </div>

@@ -12,7 +12,7 @@ import {
   TextField,
 } from "@/components/ui";
 import { useAuth } from "@/providers/auth";
-import { colors, font, spacing } from "@/theme";
+import { colors, font, radius, spacing } from "@/theme";
 
 export default function LoginScreen() {
   const { user, loading, signIn } = useAuth();
@@ -101,18 +101,26 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     gap: spacing.sm,
-    marginBottom: spacing.xl,
-    marginTop: spacing.xl,
+    marginBottom: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    backgroundColor: colors.blue50,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   title: {
     marginTop: spacing.sm,
-    fontSize: 24,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 25,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.5,
+    color: colors.ink,
   },
   subtitle: {
     fontSize: 13,
-    color: colors.slate500,
+    lineHeight: 19,
+    color: colors.slate600,
     textAlign: "center",
   },
   forgotButton: {
@@ -122,7 +130,7 @@ const styles = StyleSheet.create({
   forgotText: {
     fontSize: 13,
     fontWeight: font.medium,
-    color: colors.teal600,
+    color: colors.blue600,
   },
   switchText: {
     marginTop: spacing.md,
@@ -131,7 +139,7 @@ const styles = StyleSheet.create({
     color: colors.slate500,
   },
   switchLink: {
-    fontWeight: font.semibold,
-    color: colors.teal600,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
   },
 });

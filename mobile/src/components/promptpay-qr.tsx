@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 16,
     fontWeight: font.bold,
-    color: colors.teal700,
+    color: colors.blue700,
   },
   warning: {
     borderRadius: radius.md,

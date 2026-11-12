@@ -18,7 +18,7 @@ import {
 } from "@/components/ui";
 import { fetchServices } from "@/lib/api";
 import { useAsyncData } from "@/lib/use-async-data";
-import { colors, font, radius, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 export default function ServicesScreen() {
   const { data: services, loading, error, reload } = useAsyncData(fetchServices);
@@ -62,14 +62,17 @@ export default function ServicesScreen() {
         </AlertBox>
       ) : null}
 
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder="ค้นหาบริการ เช่น ล้างแอร์ ซ่อมท่อ"
-        placeholderTextColor={colors.slate400}
-        style={styles.search}
-        returnKeyType="search"
-      />
+      <View style={styles.searchWrap}>
+        <Text style={styles.searchIcon}>🔎</Text>
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="ค้นหาบริการ เช่น ล้างแอร์ ซ่อมท่อ"
+          placeholderTextColor={colors.slate400}
+          style={styles.search}
+          returnKeyType="search"
+        />
+      </View>
 
       <ScrollView
         horizontal
@@ -136,13 +139,24 @@ export default function ServicesScreen() {
 }
 
 const styles = StyleSheet.create({
-  search: {
-    minHeight: 48,
-    borderRadius: radius.md,
+  searchWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
+    ...shadow.card,
+  },
+  searchIcon: {
+    fontSize: 16,
+  },
+  search: {
+    flex: 1,
+    minHeight: 48,
+    paddingVertical: spacing.sm,
     fontSize: 14,
     color: colors.slate900,
   },
@@ -160,12 +174,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },
   chipActive: {
-    backgroundColor: colors.teal600,
-    borderColor: colors.teal600,
+    backgroundColor: colors.blue600,
+    borderColor: colors.blue600,
   },
   chipText: {
     fontSize: 13,
@@ -183,14 +197,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: font.semibold,
     color: colors.white,
-    backgroundColor: colors.teal600,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.blue600,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
     overflow: "hidden",
   },
   list: {
-    marginTop: spacing.md,
-    gap: spacing.sm,
+    marginTop: spacing.lg,
+    gap: spacing.md,
   },
 });

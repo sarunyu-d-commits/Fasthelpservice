@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AuthShell } from "@/components/auth-layout";
 import { RegisterForm } from "@/components/auth-forms";
-import { Logo } from "@/components/logo";
 import { getAuthContext } from "@/lib/data";
 
 export const metadata: Metadata = { title: "สมัครสมาชิก" };
@@ -18,18 +19,23 @@ export default async function RegisterPage({
   const defaultRole = role === "provider" ? "provider" : "customer";
 
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-10">
-      <div className="mb-6 flex flex-col items-center text-center">
-        <Logo />
-        <h1 className="mt-5 text-2xl font-bold text-slate-900">สร้างบัญชีใหม่</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          เริ่มใช้งาน FastHelp ได้ฟรี ไม่มีค่าสมัคร
+    <AuthShell
+      title="สร้างบัญชีใหม่"
+      subtitle="เริ่มใช้งาน FastHelp ได้ฟรี ไม่มีค่าสมัคร"
+      footer={
+        <p className="text-center text-xs text-slate-400">
+          การสมัครถือว่ายอมรับ{" "}
+          <Link href="/terms" className="underline hover:text-slate-600">
+            ข้อกำหนดการใช้งาน
+          </Link>{" "}
+          และ{" "}
+          <Link href="/privacy" className="underline hover:text-slate-600">
+            นโยบายความเป็นส่วนตัว
+          </Link>
         </p>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <RegisterForm defaultRole={defaultRole} />
-      </div>
-    </div>
+      }
+    >
+      <RegisterForm defaultRole={defaultRole} />
+    </AuthShell>
   );
 }

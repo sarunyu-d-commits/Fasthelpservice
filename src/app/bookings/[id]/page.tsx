@@ -101,14 +101,14 @@ export default async function BookingDetailPage({
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
             <div className="flex items-start gap-4">
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-teal-50 text-3xl">
+              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-sky-50 text-3xl ring-1 ring-blue-100/70">
                 {booking.service?.icon ?? "🛠️"}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-bold text-slate-900">
+                  <h1 className="font-display text-xl font-bold tracking-tight text-ink">
                     {booking.service?.name ?? "บริการ"}
                   </h1>
                   <StatusBadge status={booking.status} />
@@ -152,15 +152,15 @@ export default async function BookingDetailPage({
               ) : null}
               <div className="flex items-center justify-between border-t border-slate-100 pt-3">
                 <span className="text-slate-500">ยอดชำระ</span>
-                <span className="text-lg font-bold text-teal-700">
+                <span className="font-display text-lg font-bold text-blue-700">
                   {formatTHB(booking.price)}
                 </span>
               </div>
             </dl>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-semibold text-slate-900">ชำระเงิน</h2>
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+            <h2 className="font-display text-lg font-bold text-ink">ชำระเงิน</h2>
 
             {booking.status === "cancelled" ? (
               <p className="mt-3 rounded-xl bg-slate-100 px-3.5 py-3 text-sm text-slate-600">
@@ -191,7 +191,7 @@ export default async function BookingDetailPage({
                   />
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700"
+                    className="w-full rounded-full bg-gradient-to-r from-blue-600 to-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-sky-700"
                   >
                     ฉันชำระเงินแล้ว (ยืนยัน)
                   </button>
@@ -205,8 +205,8 @@ export default async function BookingDetailPage({
           </div>
 
           {canReview ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold text-slate-900">
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+              <h2 className="font-display text-lg font-bold text-ink">
                 ให้คะแนนผู้ให้บริการ
               </h2>
               <div className="mt-3">
@@ -216,8 +216,8 @@ export default async function BookingDetailPage({
           ) : null}
 
           {booking.review ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold text-slate-900">รีวิวของคุณ</h2>
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+              <h2 className="font-display text-lg font-bold text-ink">รีวิวของคุณ</h2>
               <div className="mt-2 flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <StarIcon
@@ -238,8 +238,8 @@ export default async function BookingDetailPage({
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-3 flex items-center gap-2 font-semibold text-slate-900">
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+            <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-ink">
               แชทกับผู้ให้บริการ
             </h2>
             <ChatBox
@@ -251,11 +251,11 @@ export default async function BookingDetailPage({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-semibold text-slate-900">ผู้ให้บริการ</h2>
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+            <h2 className="font-display text-lg font-bold text-ink">ผู้ให้บริการ</h2>
             {booking.provider ? (
               <div className="mt-3 flex items-center gap-3">
-                <span className="grid size-11 place-items-center rounded-full bg-teal-100 font-semibold text-teal-700">
+                <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-sky-50 font-semibold text-blue-700 ring-1 ring-blue-100/70">
                   {booking.provider.full_name.charAt(0) || "ช"}
                 </span>
                 <div>
@@ -279,15 +279,15 @@ export default async function BookingDetailPage({
             {booking.provider?.phone ? (
               <a
                 href={`tel:${booking.provider.phone}`}
-                className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="mt-4 flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
               >
                 โทร {booking.provider.phone}
               </a>
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-semibold text-slate-900">สถานะงาน</h2>
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+            <h2 className="font-display text-lg font-bold text-ink">สถานะงาน</h2>
             {booking.status === "cancelled" ? (
               <p className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700">
                 การจองนี้ถูกยกเลิกแล้ว
@@ -302,7 +302,7 @@ export default async function BookingDetailPage({
                     <span
                       className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
                         done
-                          ? "bg-teal-600 text-white"
+                          ? "bg-blue-600 text-white"
                           : "bg-slate-100 text-slate-400"
                       }`}
                     >
@@ -311,7 +311,7 @@ export default async function BookingDetailPage({
                     <div>
                       <p
                         className={`text-sm font-medium ${
-                          active ? "text-teal-700" : "text-slate-700"
+                          active ? "text-blue-700" : "text-slate-700"
                         }`}
                       >
                         {step.label}
@@ -340,7 +340,7 @@ export default async function BookingDetailPage({
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                  className="w-full rounded-full border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
                 >
                   ยกเลิกการจอง
                 </button>

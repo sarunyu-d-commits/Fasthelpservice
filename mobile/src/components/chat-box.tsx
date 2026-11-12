@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   bubbleMine: {
-    backgroundColor: colors.teal600,
+    backgroundColor: colors.blue600,
     borderBottomRightRadius: radius.sm,
   },
   bubbleOther: {
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.md,
-    backgroundColor: colors.teal600,
+    backgroundColor: colors.blue600,
     alignItems: "center",
     justifyContent: "center",
   },

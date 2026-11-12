@@ -69,7 +69,7 @@ export function PromptPayQR({
       <div className="text-center text-sm text-slate-600">
         <p className="font-semibold text-slate-900">พร้อมเพย์</p>
         <p>{receiverName}</p>
-        <p className="text-teal-700">{formatTHB(amount)}</p>
+        <p className="text-blue-700">{formatTHB(amount)}</p>
       </div>
     </div>
   );

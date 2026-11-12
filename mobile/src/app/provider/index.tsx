@@ -21,7 +21,7 @@ import {
 import { formatDateTime, formatTHB } from "@/lib/format";
 import { useAsyncData } from "@/lib/use-async-data";
 import { useAuth } from "@/providers/auth";
-import { colors, font, radius, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 export default function ProviderDashboardScreen() {
   const router = useRouter();
@@ -232,13 +232,16 @@ const styles = StyleSheet.create({
   link: {
     fontWeight: font.semibold,
     textDecorationLine: "underline",
-    color: colors.teal700,
+    color: colors.blue700,
   },
   hero: {
-    borderRadius: radius.xl,
-    backgroundColor: colors.teal600,
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    backgroundColor: colors.blue50,
     padding: spacing.lg,
     gap: spacing.lg,
+    ...shadow.card,
   },
   heroHeader: {
     flexDirection: "row",
@@ -252,12 +255,13 @@ const styles = StyleSheet.create({
   },
   heroGreeting: {
     fontSize: 12,
-    color: colors.teal50,
+    color: colors.slate500,
   },
   heroName: {
-    fontSize: 21,
-    fontWeight: font.bold,
-    color: colors.white,
+    fontSize: 22,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.3,
+    color: colors.ink,
   },
   heroMeta: {
     flexDirection: "row",
@@ -267,18 +271,20 @@ const styles = StyleSheet.create({
   },
   heroMetaText: {
     fontSize: 11,
-    color: colors.teal50,
+    color: colors.blue700,
   },
   profileButton: {
-    borderRadius: radius.md,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.blue200,
+    backgroundColor: colors.white,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   profileButtonText: {
     fontSize: 13,
-    fontWeight: font.medium,
-    color: colors.white,
+    fontWeight: font.semibold,
+    color: colors.blue700,
   },
   stats: {
     flexDirection: "row",
@@ -286,19 +292,21 @@ const styles = StyleSheet.create({
   },
   stat: {
     flex: 1,
-    borderRadius: radius.md,
-    backgroundColor: "rgba(255,255,255,0.12)",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.blue100,
+    backgroundColor: colors.white,
     paddingVertical: spacing.md,
     alignItems: "center",
   },
   statLabel: {
     fontSize: 11,
-    color: colors.teal50,
+    color: colors.slate500,
   },
   statValue: {
     fontSize: 20,
-    fontWeight: font.bold,
-    color: colors.white,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -308,34 +316,38 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 19,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.3,
+    color: colors.ink,
   },
   sectionCount: {
     fontSize: 12,
     color: colors.slate500,
   },
   list: {
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   jobCard: {
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
     padding: spacing.lg,
     gap: spacing.md,
+    ...shadow.card,
   },
   jobHeader: {
     flexDirection: "row",
     gap: spacing.md,
   },
   iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.teal50,
+    width: 50,
+    height: 50,
+    borderRadius: radius.lg,
+    backgroundColor: colors.blue50,
+    borderWidth: 1,
+    borderColor: colors.blue100,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -360,9 +372,10 @@ const styles = StyleSheet.create({
   },
   jobTitle: {
     flexShrink: 1,
-    fontSize: 15,
-    fontWeight: font.semibold,
-    color: colors.slate900,
+    fontSize: 16,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.2,
+    color: colors.ink,
   },
   meta: {
     fontSize: 12,
@@ -370,19 +383,20 @@ const styles = StyleSheet.create({
   },
   price: {
     marginTop: 2,
-    fontSize: 15,
-    fontWeight: font.bold,
-    color: colors.teal700,
+    fontSize: 16,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
   },
   myJobCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
     padding: spacing.lg,
+    ...shadow.card,
   },
   pressed: {
     opacity: 0.85,
@@ -399,6 +413,7 @@ const styles = StyleSheet.create({
   },
   chevron: {
     fontSize: 22,
-    color: colors.slate300,
+    fontWeight: font.bold,
+    color: colors.blue600,
   },
 });

@@ -15,7 +15,7 @@ import { fetchCustomerBookings } from "@/lib/api";
 import { formatDateTime, formatTHB } from "@/lib/format";
 import { useAsyncData } from "@/lib/use-async-data";
 import { useAuth } from "@/providers/auth";
-import { colors, font, radius, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 export default function BookingsScreen() {
   const router = useRouter();
@@ -101,7 +101,10 @@ export default function BookingsScreen() {
                       ? `ช่าง: ${booking.provider.full_name}`
                       : "รอช่างรับงาน"}
                   </Text>
-                  <Text style={styles.price}>{formatTHB(booking.price)}</Text>
+                  <View style={styles.priceWrap}>
+                    <Text style={styles.price}>{formatTHB(booking.price)}</Text>
+                    <Text style={styles.chevron}>→</Text>
+                  </View>
                 </View>
               </View>
             </Pressable>
@@ -118,30 +121,34 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   list: {
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   card: {
     flexDirection: "row",
     gap: spacing.md,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
     padding: spacing.lg,
+    ...shadow.card,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.9,
+    transform: [{ scale: 0.995 }],
   },
   iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.teal50,
+    width: 52,
+    height: 52,
+    borderRadius: radius.lg,
+    backgroundColor: colors.blue50,
+    borderWidth: 1,
+    borderColor: colors.blue100,
     alignItems: "center",
     justifyContent: "center",
   },
   icon: {
-    fontSize: 24,
+    fontSize: 25,
   },
   body: {
     flex: 1,
@@ -155,9 +162,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   title: {
-    fontSize: 15,
-    fontWeight: font.semibold,
-    color: colors.slate900,
+    fontSize: 16,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.2,
+    color: colors.ink,
   },
   meta: {
     fontSize: 12,
@@ -165,6 +173,10 @@ const styles = StyleSheet.create({
   },
   footerRow: {
     marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.slate100,
+    borderStyle: "dashed",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -175,16 +187,26 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.slate400,
   },
+  priceWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
   price: {
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
+  },
+  chevron: {
+    fontSize: 14,
     fontWeight: font.bold,
-    color: colors.teal700,
+    color: colors.blue600,
   },
   primaryButton: {
-    backgroundColor: colors.teal600,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    backgroundColor: colors.blue600,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
   },
   primaryButtonText: {
     color: colors.white,

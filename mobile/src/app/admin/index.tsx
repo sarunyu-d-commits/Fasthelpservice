@@ -21,7 +21,7 @@ import {
 import { formatDateTime, formatTHB } from "@/lib/format";
 import { useAsyncData } from "@/lib/use-async-data";
 import { useAuth } from "@/providers/auth";
-import { colors, font, radius, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 export default function AdminScreen() {
   const router = useRouter();
@@ -246,13 +246,15 @@ export default function AdminScreen() {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 23,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 26,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.6,
+    color: colors.ink,
   },
   subtitle: {
     marginTop: 2,
     fontSize: 13,
+    lineHeight: 19,
     color: colors.slate500,
   },
   statsGrid: {
@@ -263,10 +265,10 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: "48%",
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.slate200,
-    backgroundColor: colors.white,
+    borderColor: colors.blue100,
+    backgroundColor: colors.blue50,
     padding: spacing.md,
   },
   statLabel: {
@@ -275,16 +277,17 @@ const styles = StyleSheet.create({
   },
   statValue: {
     marginTop: 2,
-    fontSize: 24,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 25,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   sectionTitle: {
     marginTop: spacing.xl,
     marginBottom: spacing.sm,
-    fontSize: 18,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 19,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.3,
+    color: colors.ink,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -293,11 +296,11 @@ const styles = StyleSheet.create({
   },
   link: {
     fontSize: 13,
-    fontWeight: font.medium,
-    color: colors.teal600,
+    fontWeight: font.semibold,
+    color: colors.blue700,
   },
   list: {
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   providerHeader: {
     flexDirection: "row",
@@ -311,9 +314,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   providerName: {
-    fontSize: 15,
-    fontWeight: font.semibold,
-    color: colors.slate900,
+    fontSize: 16,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   meta: {
     fontSize: 12,
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   verifyBadgeOn: {
-    backgroundColor: colors.emerald50,
+    backgroundColor: colors.sky50,
   },
   verifyBadgeOff: {
     backgroundColor: colors.amber50,
@@ -339,7 +342,7 @@ const styles = StyleSheet.create({
     fontWeight: font.semibold,
   },
   verifyBadgeTextOn: {
-    color: colors.emerald700,
+    color: colors.sky700,
   },
   verifyBadgeTextOff: {
     color: colors.amber700,
@@ -359,17 +362,17 @@ const styles = StyleSheet.create({
   serviceName: {
     fontSize: 14,
     fontWeight: font.semibold,
-    color: colors.slate900,
+    color: colors.ink,
   },
   toggleButton: {
-    borderRadius: radius.md,
+    borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderWidth: 1,
   },
   toggleButtonOn: {
-    backgroundColor: colors.teal600,
-    borderColor: colors.teal600,
+    backgroundColor: colors.blue600,
+    borderColor: colors.blue600,
   },
   toggleButtonOff: {
     backgroundColor: colors.white,
@@ -390,23 +393,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.slate200,
     backgroundColor: colors.white,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    ...shadow.card,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.9,
   },
   bookingBody: {
     flex: 1,
     gap: 2,
   },
   bookingTitle: {
-    fontSize: 14,
-    fontWeight: font.medium,
-    color: colors.slate900,
+    fontSize: 15,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
 });

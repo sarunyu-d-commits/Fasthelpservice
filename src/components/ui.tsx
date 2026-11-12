@@ -39,13 +39,13 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white/70 px-6 py-12 text-center">
       {icon ? (
-        <div className="mb-3 grid size-12 place-items-center rounded-full bg-slate-100 text-slate-400">
+        <div className="mb-3 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-sky-50 text-blue-500 ring-1 ring-blue-100/70">
           {icon}
         </div>
       ) : null}
-      <p className="font-semibold text-slate-800">{title}</p>
+      <p className="font-display font-bold text-ink">{title}</p>
       {description ? (
         <p className="mt-1 max-w-sm text-sm text-slate-500">{description}</p>
       ) : null}

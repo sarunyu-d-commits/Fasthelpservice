@@ -53,7 +53,7 @@ export function LoginForm({ next }: { next?: string }) {
       <div className="-mt-1 text-right">
         <Link
           href="/forgot-password"
-          className="text-sm font-medium text-teal-600 hover:underline"
+          className="text-sm font-medium text-blue-600 hover:underline"
         >
           ลืมรหัสผ่าน?
         </Link>
@@ -67,7 +67,7 @@ export function LoginForm({ next }: { next?: string }) {
 
       <p className="text-center text-sm text-slate-500">
         ยังไม่มีบัญชี?{" "}
-        <Link href="/register" className="font-semibold text-teal-600">
+        <Link href="/register" className="font-semibold text-blue-600">
           สมัครสมาชิก
         </Link>
       </p>
@@ -104,7 +104,7 @@ export function ForgotPasswordForm() {
 
       <p className="text-center text-sm text-slate-500">
         จำรหัสผ่านได้แล้ว?{" "}
-        <Link href="/login" className="font-semibold text-teal-600">
+        <Link href="/login" className="font-semibold text-blue-600">
           กลับไปเข้าสู่ระบบ
         </Link>
       </p>
@@ -200,7 +200,7 @@ export function RegisterForm({
               defaultChecked={defaultRole === "customer"}
               className="peer sr-only"
             />
-            <span className="flex flex-col rounded-xl border border-slate-300 bg-white p-3 text-sm transition peer-checked:border-teal-500 peer-checked:bg-teal-50 peer-checked:ring-2 peer-checked:ring-teal-500/20">
+            <span className="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/60 p-3 text-sm transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:ring-4 peer-checked:ring-blue-500/10">
               <span className="font-semibold text-slate-900">ลูกค้า</span>
               <span className="text-xs text-slate-500">เรียกใช้บริการ</span>
             </span>
@@ -213,7 +213,7 @@ export function RegisterForm({
               defaultChecked={defaultRole === "provider"}
               className="peer sr-only"
             />
-            <span className="flex flex-col rounded-xl border border-slate-300 bg-white p-3 text-sm transition peer-checked:border-teal-500 peer-checked:bg-teal-50 peer-checked:ring-2 peer-checked:ring-teal-500/20">
+            <span className="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/60 p-3 text-sm transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:ring-4 peer-checked:ring-blue-500/10">
               <span className="font-semibold text-slate-900">ผู้ให้บริการ</span>
               <span className="text-xs text-slate-500">รับงาน/เป็นช่าง</span>
             </span>
@@ -283,7 +283,7 @@ export function RegisterForm({
 
       <p className="text-center text-sm text-slate-500">
         มีบัญชีอยู่แล้ว?{" "}
-        <Link href="/login" className="font-semibold text-teal-600">
+        <Link href="/login" className="font-semibold text-blue-600">
           เข้าสู่ระบบ
         </Link>
       </p>

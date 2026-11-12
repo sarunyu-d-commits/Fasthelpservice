@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/providers/auth";
-import { colors, font, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 type NavItem = {
   href: string;
@@ -65,9 +65,11 @@ export function BottomNav() {
         return (
           <Link key={item.href} href={item.href} asChild>
             <Pressable style={styles.item}>
-              <Text style={[styles.icon, !active && styles.iconMuted]}>
-                {item.icon}
-              </Text>
+              <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
+                <Text style={[styles.icon, !active && styles.iconMuted]}>
+                  {item.icon}
+                </Text>
+              </View>
               <Text style={[styles.label, active && styles.labelActive]}>
                 {item.label}
               </Text>
@@ -82,25 +84,37 @@ export function BottomNav() {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
+    left: spacing.md,
+    right: spacing.md,
+    bottom: spacing.sm,
     flexDirection: "row",
     backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.slate200,
+    borderWidth: 1,
+    borderColor: colors.slate200,
+    borderRadius: radius.xxl,
     paddingTop: spacing.sm,
     paddingHorizontal: spacing.sm,
+    ...shadow.card,
   },
   item: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 1,
     paddingVertical: 2,
   },
+  iconWrap: {
+    width: 48,
+    height: 30,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconWrapActive: {
+    backgroundColor: colors.blue50,
+  },
   icon: {
-    fontSize: 20,
+    fontSize: 19,
   },
   iconMuted: {
     opacity: 0.45,
@@ -111,6 +125,7 @@ const styles = StyleSheet.create({
     color: colors.slate400,
   },
   labelActive: {
-    color: colors.teal600,
+    color: colors.blue700,
+    fontWeight: font.semibold,
   },
 });

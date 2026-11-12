@@ -168,7 +168,9 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: radius.lg,
-    backgroundColor: colors.teal50,
+    backgroundColor: colors.blue50,
+    borderWidth: 1,
+    borderColor: colors.blue100,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -191,9 +193,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   name: {
-    fontSize: 21,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 22,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.4,
+    color: colors.ink,
   },
   description: {
     fontSize: 13,
@@ -207,7 +210,9 @@ const styles = StyleSheet.create({
   },
   metaBox: {
     flex: 1,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.slate100,
     backgroundColor: colors.slate50,
     padding: spacing.md,
     gap: 2,
@@ -218,8 +223,8 @@ const styles = StyleSheet.create({
   },
   metaPrice: {
     fontSize: 17,
-    fontWeight: font.bold,
-    color: colors.teal700,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
   },
   metaUnit: {
     fontSize: 11,
@@ -228,16 +233,17 @@ const styles = StyleSheet.create({
   },
   metaValue: {
     fontSize: 17,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontWeight: font.extrabold,
+    color: colors.ink,
   },
   gap: {
     marginTop: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: font.bold,
-    color: colors.slate900,
+    fontSize: 17,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.2,
+    color: colors.ink,
     marginBottom: spacing.sm,
   },
   perkRow: {
@@ -256,14 +262,16 @@ const styles = StyleSheet.create({
   },
   paymentNote: {
     marginTop: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: colors.emerald50,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.sky100,
+    backgroundColor: colors.sky50,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   paymentNoteText: {
     fontSize: 12,
-    color: colors.emerald700,
+    color: colors.sky700,
   },
   bookingBox: {
     gap: spacing.sm,

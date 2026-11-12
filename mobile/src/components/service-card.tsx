@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { formatTHB } from "@/lib/format";
 import type { Service } from "@/lib/types";
-import { colors, font, radius, spacing } from "@/theme";
+import { colors, font, radius, shadow, spacing } from "@/theme";
 
 export function ServiceCard({ service }: { service: Service }) {
   return (
@@ -11,24 +11,51 @@ export function ServiceCard({ service }: { service: Service }) {
       <Pressable
         style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       >
-        <View style={styles.iconWrap}>
-          <Text style={styles.icon}>{service.icon ?? "🛠️"}</Text>
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.name} numberOfLines={1}>
-            {service.name}
-          </Text>
-          <Text style={styles.description} numberOfLines={1}>
-            {service.description}
-          </Text>
-          <View style={styles.metaRow}>
-            <Text style={styles.price}>
-              เริ่ม {formatTHB(service.base_price)}
+        <View style={styles.topRow}>
+          <View style={styles.iconWrap}>
+            <Text style={styles.icon}>{service.icon ?? "🛠️"}</Text>
+          </View>
+          <View style={styles.categoryChip}>
+            <Text style={styles.categoryText} numberOfLines={1}>
+              {service.category}
             </Text>
-            <Text style={styles.duration}>⏱ {service.duration_minutes} นาที</Text>
           </View>
         </View>
-        <Text style={styles.chevron}>›</Text>
+
+        <View style={styles.body}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>
+              {service.name}
+            </Text>
+            <View style={styles.rating}>
+              <Text style={styles.ratingText}>★ 4.8</Text>
+            </View>
+          </View>
+          <Text style={styles.description} numberOfLines={2}>
+            {service.description}
+          </Text>
+          <Text style={styles.guarantee}>🛡 รับประกันคุณภาพ 30 วัน</Text>
+        </View>
+
+        <View style={styles.footer}>
+          <View>
+            <Text style={styles.priceLabel}>เริ่มต้น</Text>
+            <Text style={styles.price}>
+              {formatTHB(service.base_price)}
+              <Text style={styles.unit}> / {service.unit}</Text>
+            </Text>
+          </View>
+          <View style={styles.footerRight}>
+            <View style={styles.durationChip}>
+              <Text style={styles.durationText}>
+                ⏱ {service.duration_minutes} นาที
+              </Text>
+            </View>
+            <View style={styles.arrow}>
+              <Text style={styles.arrowText}>→</Text>
+            </View>
+          </View>
+        </View>
       </Pressable>
     </Link>
   );
@@ -36,60 +63,138 @@ export function ServiceCard({ service }: { service: Service }) {
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
     backgroundColor: colors.white,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     borderWidth: 1,
     borderColor: colors.slate200,
     padding: spacing.lg,
+    gap: spacing.md,
+    ...shadow.card,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.9,
+    transform: [{ scale: 0.995 }],
+  },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: spacing.sm,
   },
   iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.teal50,
+    width: 54,
+    height: 54,
+    borderRadius: radius.lg,
+    backgroundColor: colors.blue50,
+    borderWidth: 1,
+    borderColor: colors.blue100,
     alignItems: "center",
     justifyContent: "center",
   },
   icon: {
-    fontSize: 24,
+    fontSize: 27,
   },
-  body: {
-    flex: 1,
-    minWidth: 0,
+  categoryChip: {
+    maxWidth: "62%",
+    borderRadius: radius.full,
+    backgroundColor: colors.slate50,
+    borderWidth: 1,
+    borderColor: colors.slate100,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 3,
   },
-  name: {
-    fontSize: 15,
-    fontWeight: font.semibold,
-    color: colors.slate900,
-  },
-  description: {
-    marginTop: 2,
-    fontSize: 13,
+  categoryText: {
+    fontSize: 11,
+    fontWeight: font.medium,
     color: colors.slate500,
   },
-  metaRow: {
-    marginTop: 6,
+  body: {
+    gap: 3,
+  },
+  nameRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.md,
+    gap: spacing.sm,
   },
-  price: {
-    fontSize: 13,
+  name: {
+    flexShrink: 1,
+    fontSize: 18,
+    fontWeight: font.extrabold,
+    letterSpacing: -0.3,
+    color: colors.ink,
+  },
+  rating: {
+    borderRadius: radius.full,
+    backgroundColor: colors.amber50,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 1,
+  },
+  ratingText: {
+    fontSize: 11,
     fontWeight: font.semibold,
-    color: colors.teal700,
+    color: colors.amber700,
   },
-  duration: {
-    fontSize: 12,
+  description: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.slate500,
+  },
+  guarantee: {
+    fontSize: 11,
+    fontWeight: font.medium,
+    color: colors.sky700,
+  },
+  footer: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.slate100,
+    borderStyle: "dashed",
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  priceLabel: {
+    fontSize: 11,
     color: colors.slate400,
   },
-  chevron: {
-    fontSize: 24,
-    color: colors.slate300,
+  price: {
+    fontSize: 18,
+    fontWeight: font.extrabold,
+    color: colors.blue700,
+  },
+  unit: {
+    fontSize: 11,
+    fontWeight: font.regular,
+    color: colors.slate400,
+  },
+  footerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  durationChip: {
+    borderRadius: radius.full,
+    backgroundColor: colors.slate50,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+  },
+  durationText: {
+    fontSize: 11,
+    color: colors.slate500,
+  },
+  arrow: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    backgroundColor: colors.blue600,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  arrowText: {
+    fontSize: 17,
+    fontWeight: font.bold,
+    color: colors.white,
   },
 });

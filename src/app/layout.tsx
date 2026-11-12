@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_Thai } from "next/font/google";
+import { Noto_Sans_Thai, Prompt } from "next/font/google";
 import { BottomNav } from "@/components/bottom-nav";
 import { PwaRegister } from "@/components/pwa-register";
 import { SiteHeader } from "@/components/site-header";
@@ -9,6 +9,13 @@ import "./globals.css";
 const notoThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
   variable: "--font-noto-thai",
+  display: "swap",
+});
+
+const prompt = Prompt({
+  subsets: ["thai", "latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-prompt",
   display: "swap",
 });
 
@@ -36,7 +43,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: "#1d4ed8",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -50,11 +57,16 @@ export default async function RootLayout({
   const auth = await getAuthContext();
 
   return (
-    <html lang="th" className={`${notoThai.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">
-        <SiteHeader auth={auth} />
-        <main className="flex-1 pb-24 sm:pb-0">{children}</main>
-        <BottomNav role={auth?.profile?.role} />
+    <html
+      lang="th"
+      className={`${notoThai.variable} ${prompt.variable} h-full antialiased`}
+    >
+      <body className="min-h-full font-sans">
+        <div className="relative flex min-h-dvh w-full flex-col">
+          <SiteHeader auth={auth} />
+          <main className="flex-1 pb-28 md:pb-10">{children}</main>
+          <BottomNav role={auth?.profile?.role} />
+        </div>
         <PwaRegister />
       </body>
     </html>
