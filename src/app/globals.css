@@ -2,11 +2,18 @@
 
 :root {
   color-scheme: light;
+  /* easing กลาง — ใช้ทั้ง transition ของ Tailwind และ keyframes ที่เขียนเอง */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
   --font-sans: var(--font-noto-thai);
   --font-display: var(--font-noto-thai);
+
+  /* ทุก transition utility ที่ใช้ `transition` จะนุ่มและดูต่อเนื่องขึ้นทันที */
+  --default-transition-duration: 220ms;
+  --default-transition-timing-function: var(--ease-out-soft);
 
   --color-ink: #0b1b34;
   --color-navy: #0b1b34;
@@ -68,38 +75,42 @@ p {
 @keyframes float {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translate3d(0, -8px, 0);
   }
 }
 
 @keyframes float-slow {
   0%,
   100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
   50% {
-    transform: translateY(-14px) rotate(2deg);
+    transform: translate3d(0, -12px, 0) rotate(1.5deg);
   }
 }
 
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translate3d(0, 14px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes pop-in {
   0% {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.94);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.015);
   }
   100% {
     opacity: 1;
@@ -107,17 +118,43 @@ p {
   }
 }
 
+/* ข้อความแชท/ตัวบอกพิมพ์: เข้าแบบนุ่ม ไม่กระตุกตอน realtime ส่งข้อความใหม่ */
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes catalog-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 7s var(--ease-in-out-soft) infinite;
 }
 .animate-float-slow {
-  animation: float-slow 9s ease-in-out infinite;
+  animation: float-slow 10s var(--ease-in-out-soft) infinite;
 }
 .animate-fade-up {
-  animation: fade-up 0.7s ease-out both;
+  animation: fade-up 0.6s var(--ease-out-soft) both;
 }
 .animate-pop-in {
-  animation: pop-in 0.5s ease-out both;
+  animation: pop-in 0.45s var(--ease-out-soft) both;
+}
+.animate-message-in {
+  animation: message-in 0.34s var(--ease-out-soft) both;
 }
 .anim-delay-1 {
   animation-delay: 0.08s;
@@ -132,6 +169,19 @@ p {
   animation-delay: 0.32s;
 }
 
+/* crossfade ตอนเปลี่ยนตัวกรองบริการ (React ViewTransition บนแค็ตตาล็อก) */
+::view-transition-old(.catalog-swap) {
+  animation: 160ms var(--ease-out-soft) both catalog-out;
+}
+::view-transition-new(.catalog-swap) {
+  animation: 240ms var(--ease-out-soft) both catalog-in;
+}
+@keyframes catalog-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -139,7 +189,14 @@ p {
   .animate-float,
   .animate-float-slow,
   .animate-fade-up,
-  .animate-pop-in {
+  .animate-pop-in,
+  .animate-message-in,
+  .animate-pulse {
     animation: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

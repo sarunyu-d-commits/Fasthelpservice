@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { ViewTransition } from "react";
 import { ServiceCard } from "@/components/service-card";
 import { EmptyState } from "@/components/ui";
 import {
@@ -183,11 +184,17 @@ export function ServiceCatalog({ services }: { services: Service[] }) {
           />
         </div>
       ) : (
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
-        </div>
+        <ViewTransition
+          enter="catalog-swap"
+          exit="catalog-swap"
+          default="none"
+        >
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((service) => (
+              <ServiceCard key={service.id} service={service} />
+            ))}
+          </div>
+        </ViewTransition>
       )}
     </div>
   );
