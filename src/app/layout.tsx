@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_Thai, Prompt } from "next/font/google";
+import { Noto_Sans_Thai } from "next/font/google";
 import { Suspense } from "react";
 import { AuthErrorNotice } from "@/components/auth-error-notice";
 import { BottomNav } from "@/components/bottom-nav";
@@ -11,13 +11,6 @@ import "./globals.css";
 const notoThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
   variable: "--font-noto-thai",
-  display: "swap",
-});
-
-const prompt = Prompt({
-  subsets: ["thai", "latin"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-prompt",
   display: "swap",
 });
 
@@ -61,7 +54,7 @@ export default async function RootLayout({
   return (
     <html
       lang="th"
-      className={`${notoThai.variable} ${prompt.variable} h-full antialiased`}
+      className={`${notoThai.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">
         <div className="relative flex min-h-dvh w-full flex-col">
