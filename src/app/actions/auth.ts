@@ -23,6 +23,21 @@ function translateAuthError(message: string) {
   if (lower.includes("email not confirmed")) {
     return "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ";
   }
+  if (
+    lower.includes("over_email_send_rate_limit") ||
+    lower.includes("email rate limit exceeded")
+  ) {
+    return "ขณะนี้โควต้าส่งอีเมลของระบบเต็ม (ผู้ให้บริการพื้นฐานส่งได้ 2 ฉบับต่อชั่วโมง) กรุณารอประมาณ 1 ชั่วโมงแล้วลองใหม่ หรือแจ้งผู้ดูแลเพื่อตั้งค่า SMTP";
+  }
+  if (lower.includes("for security purposes") && lower.includes("request this after")) {
+    return "กรุณารอประมาณ 60 วินาทีก่อนขออีเมลใหม่อีกครั้ง";
+  }
+  if (
+    lower.includes("email_address_not_authorized") ||
+    lower.includes("not authorized")
+  ) {
+    return "อีเมลนี้ยังไม่ได้รับอนุญาตให้รับอีเมลจากระบบ กรุณาติดต่อผู้ดูแล";
+  }
   return message;
 }
 
