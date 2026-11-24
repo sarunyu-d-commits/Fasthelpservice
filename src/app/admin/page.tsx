@@ -5,7 +5,13 @@ import { setProviderVerified, setServiceActive } from "@/app/actions/admin";
 import { Alert } from "@/components/form";
 import { CheckIcon, ShieldIcon, StarIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/ui";
-import { getAllProviders, getAllServices, getAuthContext, getRecentBookings } from "@/lib/data";
+import {
+  getAllProviders,
+  getAllServices,
+  getProfile,
+  getRecentBookings,
+  getSessionUser,
+} from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 
 export const metadata: Metadata = { title: "ผู้ดูแลระบบ" };
@@ -26,15 +32,16 @@ export default async function AdminPage({
 }: {
   searchParams: Promise<{ message?: string; error?: string }>;
 }) {
-  const auth = await getAuthContext();
-  if (!auth) redirect("/login?next=/admin");
-  if (auth.profile?.role !== "admin") redirect("/account");
+  const user = await getSessionUser();
+  if (!user) redirect("/login?next=/admin");
 
-  const [providers, services, bookings] = await Promise.all([
+  const [profile, providers, services, bookings] = await Promise.all([
+    getProfile(user.id),
     getAllProviders(),
     getAllServices(),
     getRecentBookings(10),
   ]);
+  if (profile?.role !== "admin") redirect("/account");
 
   const { message, error } = await searchParams;
   const verifiedCount = providers.filter((provider) => provider.is_verified).length;

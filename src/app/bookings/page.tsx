@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { CalendarIcon, MapPinIcon, PlusIcon } from "@/components/icons";
 import { EmptyState, PaymentBadge, StatusBadge } from "@/components/ui";
 import {
-  getAuthContext,
   getCustomerBookings,
+  getProfile,
+  getSessionUser,
   getUnreadCountsForUser,
 } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
@@ -13,15 +14,16 @@ import { formatDateTime, formatTHB } from "@/lib/format";
 export const metadata: Metadata = { title: "การจองของฉัน" };
 
 export default async function BookingsPage() {
-  const auth = await getAuthContext();
-  if (!auth) redirect("/login?next=/bookings");
-  if (auth.profile?.role === "provider") redirect("/provider");
+  const user = await getSessionUser();
+  if (!user) redirect("/login?next=/bookings");
 
-  // RLS กรอง messages ให้เอง → unread รันคู่กับ bookings ได้ ไม่ต้องรอกัน
-  const [bookings, unread] = await Promise.all([
-    getCustomerBookings(auth.user.id),
-    getUnreadCountsForUser(auth.user.id),
+  // profile / bookings / unread รันพร้อมกัน → เหลือ 1 network round-trip
+  const [profile, bookings, unread] = await Promise.all([
+    getProfile(user.id),
+    getCustomerBookings(user.id),
+    getUnreadCountsForUser(user.id),
   ]);
+  if (profile?.role === "provider") redirect("/provider");
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">

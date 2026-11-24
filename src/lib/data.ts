@@ -35,35 +35,48 @@ function normalizeBooking(row: Record<string, unknown>): BookingWithRelations {
   };
 }
 
-// memoize ต่อ request → ทุก page/action ที่เรียกซ้ำได้ผลเดิมโดยไม่ยิง network ซ้ำ
-export const getAuthContext = cache(
-  async (): Promise<AuthContext | null> => {
+// session จาก cookie ไม่ยิง network → ใช้เป็นจุดเริ่มต้นของทุก page ได้ทันที
+export const getSessionUser = cache(
+  async (): Promise<AuthContext["user"] | null> => {
     if (!isSupabaseConfigured()) return null;
-
     try {
       const supabase = await createClient();
-
-      // session ใน cookie ถูกเซ็นโดย Supabase และ RLS ยังตรวจสิทธิ์ทุก query
-      // → ไม่ต้องยิง getUser() ไป Auth server อีก 1 รอบ (~285ms)
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return null;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      return {
-        user: { id: user.id, email: user.email },
-        profile: (profile as Profile | null) ?? null,
-      };
+      return session?.user
+        ? { id: session.user.id, email: session.user.email }
+        : null;
     } catch {
       return null;
     }
+  },
+);
+
+// profile แยกออกมาเพื่อให้รันคู่กับ query อื่นของ page ได้
+export const getProfile = cache(
+  async (id: string): Promise<Profile | null> => {
+    if (!isSupabaseConfigured()) return null;
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      return (data as Profile | null) ?? null;
+    } catch {
+      return null;
+    }
+  },
+);
+
+// memoize ต่อ request → ทุก action ที่เรียกซ้ำได้ผลเดิมโดยไม่ยิง network ซ้ำ
+export const getAuthContext = cache(
+  async (): Promise<AuthContext | null> => {
+    const user = await getSessionUser();
+    if (!user) return null;
+    return { user, profile: await getProfile(user.id) };
   },
 );
 

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PasswordForm } from "@/components/auth-forms";
 import { Logo } from "@/components/logo";
-import { getAuthContext } from "@/lib/data";
+import { getSessionUser } from "@/lib/data";
 
 export const metadata: Metadata = { title: "ตั้งรหัสผ่านใหม่" };
 
 export default async function ResetPasswordPage() {
-  const auth = await getAuthContext();
+  const auth = await getSessionUser();
   if (!auth) redirect("/forgot-password");
 
   return (
@@ -18,7 +18,7 @@ export default async function ResetPasswordPage() {
           ตั้งรหัสผ่านใหม่
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          กำหนดรหัสผ่านใหม่สำหรับบัญชี {auth.user.email}
+          กำหนดรหัสผ่านใหม่สำหรับบัญชี {auth.email}
         </p>
       </div>
 

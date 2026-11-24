@@ -14,10 +14,11 @@ import {
 } from "@/components/icons";
 import { PaymentBadge, StatusBadge } from "@/components/ui";
 import {
-  getAuthContext,
   getBookingById,
   getBookingReads,
   getMessages,
+  getProfile,
+  getSessionUser,
 } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 import { isValidCoordinate } from "@/lib/location";
@@ -40,20 +41,19 @@ export default async function ProviderJobPage({
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const { error } = query;
 
-  // RLS กรอง booking ให้แล้ว → ดึง auth กับ booking พร้อมกันได้
-  const [auth, booking] = await Promise.all([
-    getAuthContext(),
-    getBookingById(id),
-  ]);
-  if (!auth) redirect(`/login?next=/provider/jobs/${id}`);
-  if (auth.profile?.role !== "provider") redirect("/bookings");
-  if (!booking) notFound();
-  if (booking.provider_id !== auth.user.id) redirect("/provider");
+  const user = await getSessionUser();
+  if (!user) redirect(`/login?next=/provider/jobs/${id}`);
 
-  const [messages, reads] = await Promise.all([
+  // ทุก query รันพร้อมกัน (RLS กรอง booking ให้แล้ว)
+  const [profile, booking, messages, reads] = await Promise.all([
+    getProfile(user.id),
+    getBookingById(id),
     getMessages(id),
     getBookingReads(id),
   ]);
+  if (profile?.role !== "provider") redirect("/bookings");
+  if (!booking) notFound();
+  if (booking.provider_id !== user.id) redirect("/provider");
   const bookingLocation =
     booking.latitude !== null &&
     booking.longitude !== null &&
@@ -162,7 +162,7 @@ export default async function ProviderJobPage({
             </h2>
             <ChatBox
               bookingId={booking.id}
-              currentUserId={auth.user.id}
+              currentUserId={user.id}
               otherUserId={booking.customer_id}
               initialMessages={messages}
               reads={reads}

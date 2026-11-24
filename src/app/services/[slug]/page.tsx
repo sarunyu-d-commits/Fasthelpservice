@@ -11,7 +11,7 @@ import {
   ShieldIcon,
   StarIcon,
 } from "@/components/icons";
-import { getAuthContext, getServiceBySlug } from "@/lib/data";
+import { getProfile, getServiceBySlug, getSessionUser } from "@/lib/data";
 import { formatTHB } from "@/lib/format";
 
 export async function generateMetadata({
@@ -47,15 +47,15 @@ export default async function ServiceDetailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
-  const [service, auth] = await Promise.all([
+  const [{ slug }, user] = await Promise.all([params, getSessionUser()]);
+  const [service, profile] = await Promise.all([
     getServiceBySlug(slug),
-    getAuthContext(),
+    user ? getProfile(user.id) : Promise.resolve(null),
   ]);
 
   if (!service) notFound();
 
-  const role = auth?.profile?.role;
+  const role = profile?.role;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -147,7 +147,7 @@ export default async function ServiceDetailPage({
               </span>
             </div>
 
-            {!auth ? (
+            {!user ? (
               <div className="mt-4 space-y-3">
                 <p className="text-sm text-slate-600">
                   เข้าสู่ระบบเพื่อเลือกวันเวลาและยืนยันการจอง

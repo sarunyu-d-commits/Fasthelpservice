@@ -4,24 +4,26 @@ import { redirect } from "next/navigation";
 import { ArrowLeftIcon } from "@/components/icons";
 import { ProviderProfileForm } from "@/components/provider-profile-form";
 import {
-  getAuthContext,
+  getProfile,
   getProviderProfile,
   getProviderServiceIds,
   getServices,
+  getSessionUser,
 } from "@/lib/data";
 
 export const metadata: Metadata = { title: "โปรไฟล์ช่าง" };
 
 export default async function ProviderProfilePage() {
-  const auth = await getAuthContext();
-  if (!auth) redirect("/login?next=/provider/profile");
-  if (auth.profile?.role !== "provider") redirect("/bookings");
+  const user = await getSessionUser();
+  if (!user) redirect("/login?next=/provider/profile");
 
-  const [services, provider, selectedServiceIds] = await Promise.all([
+  const [profile, services, provider, selectedServiceIds] = await Promise.all([
+    getProfile(user.id),
     getServices(),
-    getProviderProfile(auth.user.id),
-    getProviderServiceIds(auth.user.id),
+    getProviderProfile(user.id),
+    getProviderServiceIds(user.id),
   ]);
+  if (profile?.role !== "provider") redirect("/bookings");
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">

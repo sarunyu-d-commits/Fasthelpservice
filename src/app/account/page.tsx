@@ -10,7 +10,7 @@ import {
   LogOutIcon,
   WrenchIcon,
 } from "@/components/icons";
-import { getAuthContext } from "@/lib/data";
+import { getProfile, getSessionUser } from "@/lib/data";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "บัญชีของฉัน" };
@@ -25,12 +25,12 @@ const cardClass =
   "rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card";
 
 export default async function AccountPage() {
-  const auth = await getAuthContext();
-  if (!auth) redirect("/login?next=/account");
+  const user = await getSessionUser();
+  if (!user) redirect("/login?next=/account");
 
-  const profile = auth.profile;
+  const profile = await getProfile(user.id);
   const role = profile?.role ?? "customer";
-  const initial = (profile?.full_name || auth.user.email || "?")
+  const initial = (profile?.full_name || user.email || "?")
     .charAt(0)
     .toUpperCase();
 
@@ -55,7 +55,7 @@ export default async function AccountPage() {
             <p className="truncate font-display text-lg font-bold">
               {profile?.full_name || "ยังไม่ได้ระบุชื่อ"}
             </p>
-            <p className="truncate text-sm text-blue-50">{auth.user.email}</p>
+            <p className="truncate text-sm text-blue-50">{user.email}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-blue-50">
                 {ROLE_LABEL[role] ?? role}

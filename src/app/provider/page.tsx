@@ -13,11 +13,12 @@ import {
 import { Alert } from "@/components/form";
 import { EmptyState, PaymentBadge, StatusBadge } from "@/components/ui";
 import {
-  getAuthContext,
   getOpenBookings,
+  getProfile,
   getProviderJobs,
   getProviderProfile,
   getProviderServiceIds,
+  getSessionUser,
   getUnreadCountsForUser,
 } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
@@ -37,17 +38,20 @@ export default async function ProviderDashboardPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  const auth = await getAuthContext();
-  if (!auth) redirect("/login?next=/provider");
-  if (auth.profile?.role !== "provider") redirect("/bookings");
+  const user = await getSessionUser();
+  if (!user) redirect("/login?next=/provider");
 
-  const [openJobs, myJobs, provider, serviceIds, unread] = await Promise.all([
-    getOpenBookings(auth.user.id),
-    getProviderJobs(auth.user.id),
-    getProviderProfile(auth.user.id),
-    getProviderServiceIds(auth.user.id),
-    getUnreadCountsForUser(auth.user.id),
-  ]);
+  // ทุก query รันพร้อมกัน รวม profile ที่ใช้เช็ค role ด้วย
+  const [profile, openJobs, myJobs, provider, serviceIds, unread] =
+    await Promise.all([
+      getProfile(user.id),
+      getOpenBookings(user.id),
+      getProviderJobs(user.id),
+      getProviderProfile(user.id),
+      getProviderServiceIds(user.id),
+      getUnreadCountsForUser(user.id),
+    ]);
+  if (profile?.role !== "provider") redirect("/bookings");
 
   const { error } = await searchParams;
   const errorMessage = error
@@ -73,7 +77,7 @@ export default async function ProviderDashboardPage({
           <div>
             <p className="text-sm text-blue-50">สวัสดี,</p>
             <h1 className="font-display text-xl font-bold">
-              {auth.profile?.full_name || "ผู้ให้บริการ"}
+              {profile?.full_name || "ผู้ให้บริการ"}
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-blue-50">
               <span className="inline-flex items-center gap-1">

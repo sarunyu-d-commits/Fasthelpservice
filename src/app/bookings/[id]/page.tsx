@@ -18,11 +18,11 @@ import { PromptPayQR } from "@/components/promptpay-qr";
 import { ReviewForm } from "@/components/review-form";
 import { PaymentBadge, StatusBadge } from "@/components/ui";
 import {
-  getAuthContext,
   getBookingById,
   getBookingReads,
   getMessages,
   getProviderProfile,
+  getSessionUser,
 } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 import { isValidCoordinate } from "@/lib/location";
@@ -60,16 +60,16 @@ export default async function BookingDetailPage({
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const { error, paid, reviewed } = query;
 
-  // auth และ booking ไม่ต้องรอกัน (RLS ตรวจสิทธิ์ booking อยู่แล้ว)
-  const [auth, booking] = await Promise.all([
-    getAuthContext(),
+  // session อ่านจาก cookie + booking query รันพร้อมกัน (RLS ตรวจสิทธิ์ให้แล้ว)
+  const [user, booking] = await Promise.all([
+    getSessionUser(),
     getBookingById(id),
   ]);
-  if (!auth) redirect(`/login?next=/bookings/${id}`);
+  if (!user) redirect(`/login?next=/bookings/${id}`);
   if (!booking) notFound();
 
-  const isCustomer = booking.customer_id === auth.user.id;
-  const isProvider = booking.provider_id === auth.user.id;
+  const isCustomer = booking.customer_id === user.id;
+  const isProvider = booking.provider_id === user.id;
 
   if (!isCustomer && !isProvider) notFound();
   if (isProvider && !isCustomer) redirect(`/provider/jobs/${id}`);
@@ -276,7 +276,7 @@ export default async function BookingDetailPage({
             </h2>
             <ChatBox
               bookingId={booking.id}
-              currentUserId={auth.user.id}
+              currentUserId={user.id}
               otherUserId={booking.provider_id}
               initialMessages={messages}
               reads={reads}
