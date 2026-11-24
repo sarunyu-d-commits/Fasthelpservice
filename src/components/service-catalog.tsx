@@ -11,6 +11,7 @@ import {
   ShieldIcon,
   SparklesIcon,
 } from "@/components/icons";
+import { filterServices } from "@/lib/service-filter";
 import type { Service } from "@/lib/types";
 
 export function ServiceCatalog({ services }: { services: Service[] }) {
@@ -26,16 +27,9 @@ export function ServiceCatalog({ services }: { services: Service[] }) {
   const activeCategory =
     category && categories.includes(category) ? category : undefined;
 
-  const needle = query.toLowerCase();
-  const filtered = services.filter((service) => {
-    const matchesCategory =
-      !activeCategory || service.category === activeCategory;
-    const matchesQuery =
-      !needle ||
-      [service.name, service.description ?? "", service.category].some((value) =>
-        value.toLowerCase().includes(needle),
-      );
-    return matchesCategory && matchesQuery;
+  const filtered = filterServices(services, {
+    category: activeCategory,
+    query,
   });
 
   const categoryHref = (value?: string) => {

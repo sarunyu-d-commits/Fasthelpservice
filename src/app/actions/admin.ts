@@ -18,6 +18,8 @@ function revalidateAdmin() {
   revalidatePath("/admin");
   revalidatePath("/provider");
   revalidatePath("/services");
+  // หน้าแรกและหน้าบริการเป็น ISR → ต้อง invalidate ด้วยตอน admin เปลี่ยนข้อมูล
+  revalidatePath("/");
 }
 
 export async function setProviderVerified(formData: FormData) {
