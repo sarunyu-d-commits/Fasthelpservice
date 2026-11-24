@@ -43,38 +43,23 @@ export const getAuthContext = cache(
     try {
       const supabase = await createClient();
 
-      // ดึง id จาก session ใน cookie (ไม่ยิง network) เพื่อให้ query profile
-      // ทำงานคู่กับ getUser() ได้ → เหลือรอบเดียวแทนสองรอบ
+      // session ใน cookie ถูกเซ็นโดย Supabase และ RLS ยังตรวจสิทธิ์ทุก query
+      // → ไม่ต้องยิง getUser() ไป Auth server อีก 1 รอบ (~285ms)
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const localId = session?.user?.id ?? null;
-
-      const [userResult, profileResult] = await Promise.all([
-        supabase.auth.getUser(),
-        localId
-          ? supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", localId)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-      ]);
-
-      const user = userResult.data.user;
+      const user = session?.user;
       if (!user) return null;
 
-      const profile = profileResult.data as Profile | null;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+
       return {
         user: { id: user.id, email: user.email },
-        profile:
-          profile && profile.id === user.id
-            ? profile
-            : ((await supabase
-                .from("profiles")
-                .select("*")
-                .eq("id", user.id)
-                .maybeSingle()).data as Profile | null),
+        profile: (profile as Profile | null) ?? null,
       };
     } catch {
       return null;
