@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAuthContext } from "@/lib/data";
+import { isValidCoordinate } from "@/lib/location";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { BookingStatus, Service } from "@/lib/types";
 
@@ -33,10 +34,24 @@ export async function createBooking(
   );
   const address = String(formData.get("address") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
+  const latitudeRaw = String(formData.get("latitude") ?? "").trim();
+  const longitudeRaw = String(formData.get("longitude") ?? "").trim();
+  const locationLabel =
+    String(formData.get("location_label") ?? "").trim().slice(0, 200) || null;
 
   if (!serviceId) return { error: "ไม่พบบริการที่เลือก" };
   if (!scheduledAtRaw) return { error: "กรุณาเลือกวันและเวลานัดหมาย" };
   if (!address) return { error: "กรุณากรอกที่อยู่สำหรับให้บริการ" };
+
+  let latitude: number | null = null;
+  let longitude: number | null = null;
+  if (latitudeRaw || longitudeRaw) {
+    latitude = Number(latitudeRaw);
+    longitude = Number(longitudeRaw);
+    if (!isValidCoordinate(latitude, longitude)) {
+      return { error: "พิกัดจุดนัดหมายไม่ถูกต้อง" };
+    }
+  }
 
   const scheduledAt = new Date(scheduledAtRaw);
   if (Number.isNaN(scheduledAt.getTime())) {
@@ -65,6 +80,9 @@ export async function createBooking(
       scheduled_at: scheduledAt.toISOString(),
       address,
       notes: notes || null,
+      latitude,
+      longitude,
+      location_label: latitude !== null ? locationLabel : null,
       price: service.base_price,
       status: "pending",
       payment_status: "unpaid",

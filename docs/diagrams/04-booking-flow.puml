@@ -1,0 +1,72 @@
+@startuml
+title ภาพที่ 3-4 ขั้นตอนการจอง การรับงาน และการชำระเงิน
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Tahoma
+skinparam defaultFontColor #000000
+skinparam defaultFontSize 14
+skinparam dpi 150
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam ArrowColor #000000
+skinparam ArrowThickness 1.1
+skinparam ArrowFontColor #000000
+skinparam ArrowFontSize 12
+skinparam titleFontSize 17
+skinparam titleFontColor #000000
+skinparam activityBackgroundColor #FFFFFF
+skinparam activityBorderColor #000000
+skinparam activityFontColor #000000
+skinparam activityDiamondBackgroundColor #FFFFFF
+skinparam activityDiamondBorderColor #000000
+skinparam swimlaneBackgroundColor #FFFFFF
+skinparam swimlaneBorderColor #000000
+skinparam swimlaneTitleBackgroundColor #F2F2F2
+skinparam swimlaneTitleFontColor #000000
+skinparam noteBackgroundColor #F7F7F7
+skinparam noteBorderColor #000000
+
+|ลูกค้า|
+start
+:เลือกบริการจากแค็ตตาล็อก;
+:กรอกวันเวลา ที่อยู่\nและรายละเอียดงาน;
+:ยืนยันการจอง;
+
+|ระบบ|
+:สร้างรายการจอง\nstatus = pending, payment_status = unpaid;
+note right
+  ลูกค้ายกเลิกได้เฉพาะงานที่ยังไม่เริ่ม
+  ระบบจะเปลี่ยน status = cancelled
+end note
+:แสดงงานให้ช่างที่เปิดรับ\nและมีบริการตรงกับงาน;
+
+|ลูกค้า|
+:สแกน PromptPay QR\nและกดยืนยันการชำระเงิน;
+note right
+  ชำระได้ทุกเมื่อก่อนงานถูกยกเลิก
+  (ระดับต้นแบบ: ยืนยันด้วยตนเอง)
+end note
+
+|ระบบ|
+:payment_status = paid;
+
+|ช่าง|
+:ตรวจสอบประเภทงาน\nวันเวลา และราคา;
+if (รับงานหรือไม่?) then (รับงาน)
+  |ระบบ|
+  :กำหนด provider_id\nstatus = accepted;
+  |ช่าง|
+  :กดเริ่มให้บริการ\nstatus = in_progress;
+  :ให้บริการและปิดงาน\nstatus = completed;
+  |ลูกค้า|
+  :รีวิวและให้คะแนน 1-5 ดาว;
+  |ระบบ|
+  :Trigger คำนวณ rating_avg\nและ rating_count อัตโนมัติ;
+  stop
+else (ยังไม่รับ)
+  |ระบบ|
+  :งานคงสถานะ pending\nรอช่างคนอื่นรับงาน;
+  stop
+endif
+
+@enduml

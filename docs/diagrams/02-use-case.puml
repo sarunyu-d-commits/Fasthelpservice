@@ -1,0 +1,70 @@
+@startuml
+title ภาพที่ 3-2 แผนภาพยูสเคส (Use Case Diagram)
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Tahoma
+skinparam defaultFontColor #000000
+skinparam defaultFontSize 14
+skinparam dpi 150
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam ArrowColor #000000
+skinparam ArrowThickness 1.1
+skinparam ArrowFontColor #000000
+skinparam ArrowFontSize 12
+skinparam titleFontSize 17
+skinparam titleFontColor #000000
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+skinparam usecaseFontColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #000000
+skinparam actorFontColor #000000
+skinparam rectangleBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+
+left to right direction
+
+actor "ลูกค้า" as Customer
+actor "ผู้ให้บริการ\n(ช่าง)" as Provider
+actor "ผู้ดูแลระบบ" as Admin
+
+rectangle "ระบบ FastHelp" {
+  usecase "สมัครสมาชิก / เข้าสู่ระบบ" as UC01
+  usecase "รีเซ็ตรหัสผ่าน" as UC02
+  usecase "จัดการข้อมูลส่วนตัว" as UC03
+  usecase "ค้นหาและดูรายละเอียดบริการ" as UC04
+  usecase "จองบริการ" as UC05
+  usecase "ชำระเงินผ่าน PromptPay QR" as UC06
+  usecase "รับงานและอัปเดตสถานะ" as UC07
+  usecase "แชทกับคู่สนทนาในงาน" as UC08
+  usecase "รีวิวและให้คะแนน" as UC09
+  usecase "ยืนยันตัวตนผู้ให้บริการ" as UC10
+  usecase "จัดการบริการและดูรายงาน" as UC11
+}
+
+Customer --> UC01
+Customer --> UC02
+Customer --> UC03
+Customer --> UC04
+Customer --> UC05
+Customer --> UC08
+Customer --> UC09
+
+Provider --> UC01
+Provider --> UC02
+Provider --> UC03
+Provider --> UC04
+Provider --> UC07
+Provider --> UC08
+
+Admin --> UC01
+Admin --> UC03
+Admin --> UC10
+Admin --> UC11
+
+UC05 ..> UC06 : <<include>>\nหลังช่างรับงาน
+UC07 ..> UC08 : <<include>>
+UC09 ..> UC07 : <<extend>>\nเมื่องานเสร็จสิ้น
+
+@enduml

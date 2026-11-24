@@ -11,7 +11,7 @@ import {
   Screen,
   StatusBadge,
 } from "@/components/ui";
-import { fetchCustomerBookings } from "@/lib/api";
+import { fetchCustomerBookings, fetchUnreadCounts } from "@/lib/api";
 import { formatDateTime, formatTHB } from "@/lib/format";
 import { useAsyncData } from "@/lib/use-async-data";
 import { useAuth } from "@/providers/auth";
@@ -20,9 +20,15 @@ import { colors, font, radius, shadow, spacing } from "@/theme";
 export default function BookingsScreen() {
   const router = useRouter();
   const { user, profile, loading: authLoading } = useAuth();
-  const { data, loading, error, reload } = useAsyncData(() =>
-    user ? fetchCustomerBookings(user.id) : Promise.resolve([]),
-  );
+  const { data, loading, error, reload } = useAsyncData(async () => {
+    if (!user) return { bookings: [], unread: {} as Record<string, number> };
+    const bookings = await fetchCustomerBookings(user.id);
+    const unread = await fetchUnreadCounts(
+      bookings.map((booking) => booking.id),
+      user.id,
+    );
+    return { bookings, unread };
+  });
 
   if (authLoading) return <LoadingView />;
   if (!user) {
@@ -30,7 +36,8 @@ export default function BookingsScreen() {
   }
   if (profile?.role === "provider") return <Redirect href="/provider" />;
 
-  const bookings = data ?? [];
+  const bookings = data?.bookings ?? [];
+  const unread = data?.unread ?? {};
 
   return (
     <Screen>
@@ -86,6 +93,11 @@ export default function BookingsScreen() {
                   <Text style={styles.title} numberOfLines={1}>
                     {booking.service?.name ?? "บริการ"}
                   </Text>
+                  {unread[booking.id] ? (
+                    <Text style={styles.unread}>
+                      {unread[booking.id]} ข้อความใหม่
+                    </Text>
+                  ) : null}
                   <StatusBadge status={booking.status} />
                   <PaymentBadge status={booking.payment_status} />
                 </View>
@@ -166,6 +178,15 @@ const styles = StyleSheet.create({
     fontWeight: font.extrabold,
     letterSpacing: -0.2,
     color: colors.ink,
+  },
+  unread: {
+    borderRadius: radius.full,
+    backgroundColor: colors.blue600,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    fontSize: 11,
+    fontWeight: font.semibold,
+    color: colors.white,
   },
   meta: {
     fontSize: 12,

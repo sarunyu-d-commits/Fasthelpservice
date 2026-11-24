@@ -1,9 +1,11 @@
 import { useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useAsyncData<T>(loader: () => Promise<T>) {
   const loaderRef = useRef(loader);
-  loaderRef.current = loader;
+  useEffect(() => {
+    loaderRef.current = loader;
+  }, [loader]);
 
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);

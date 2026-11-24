@@ -2,6 +2,7 @@ import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { BookingLocationCard } from "@/components/booking-location-card";
 import { ChatBox } from "@/components/chat-box";
 import {
   AlertBox,
@@ -15,10 +16,12 @@ import {
 } from "@/components/ui";
 import {
   fetchBookingById,
+  fetchBookingReads,
   fetchMessages,
   updateBookingStatus,
 } from "@/lib/api";
 import { formatDateTime, formatTHB } from "@/lib/format";
+import { isValidCoordinate } from "@/lib/location";
 import { useAsyncData } from "@/lib/use-async-data";
 import { useAuth } from "@/providers/auth";
 import { colors, font, radius, spacing } from "@/theme";
@@ -36,8 +39,11 @@ export default function ProviderJobScreen() {
     if (!user) return null;
     const booking = await fetchBookingById(id);
     if (!booking) return null;
-    const messages = await fetchMessages(id);
-    return { booking, messages };
+    const [messages, reads] = await Promise.all([
+      fetchMessages(id),
+      fetchBookingReads(id),
+    ]);
+    return { booking, messages, reads };
   });
 
   if (authLoading) return <LoadingView />;
@@ -51,7 +57,13 @@ export default function ProviderJobScreen() {
   if (profile?.role !== "provider") return <Redirect href="/bookings" />;
   if (loading || !data) return <LoadingView />;
 
-  const { booking, messages } = data;
+  const { booking, messages, reads } = data;
+  const bookingLocation =
+    booking.latitude !== null &&
+    booking.longitude !== null &&
+    isValidCoordinate(booking.latitude, booking.longitude)
+      ? { latitude: booking.latitude, longitude: booking.longitude }
+      : null;
 
   if (booking.provider_id !== user.id) {
     return (
@@ -148,12 +160,24 @@ export default function ProviderJobScreen() {
         </View>
       </Card>
 
+      {bookingLocation ? (
+        <View style={styles.gap}>
+          <BookingLocationCard
+            latitude={bookingLocation.latitude}
+            longitude={bookingLocation.longitude}
+            label={booking.location_label}
+          />
+        </View>
+      ) : null}
+
       <Card style={styles.gap}>
         <Text style={styles.sectionTitle}>แชทกับลูกค้า</Text>
         <ChatBox
           bookingId={booking.id}
           currentUserId={user.id}
+          otherUserId={booking.customer_id}
           initialMessages={messages}
+          reads={reads}
         />
       </Card>
 

@@ -1,10 +1,13 @@
+import { isValidCoordinate, locationExpiresAt } from "./location";
 import { isSupabaseConfigured, supabase } from "./supabase";
 import { SEED_SERVICES } from "./seed-services";
 import type {
   Booking,
+  BookingRead,
   BookingStatus,
   BookingWithRelations,
   Message,
+  MessageType,
   OpenJob,
   Profile,
   ProviderProfile,
@@ -29,6 +32,19 @@ function normalizeBooking(row: Record<string, unknown>): BookingWithRelations {
     customer: (row.customer as Profile | null) ?? null,
     provider: (row.provider as Profile | null) ?? null,
     review: Array.isArray(rawReview) ? (rawReview[0] ?? null) : rawReview,
+  };
+}
+
+export function normalizeMessage(row: Record<string, unknown>): Message {
+  return {
+    ...(row as unknown as Message),
+    message_type: (row.message_type as MessageType) ?? "text",
+    body: typeof row.body === "string" ? row.body : "",
+    latitude: (row.latitude as number | null) ?? null,
+    longitude: (row.longitude as number | null) ?? null,
+    location_label: (row.location_label as string | null) ?? null,
+    image_path: (row.image_path as string | null) ?? null,
+    expires_at: (row.expires_at as string | null) ?? null,
   };
 }
 
@@ -127,7 +143,59 @@ export async function fetchMessages(bookingId: string): Promise<Message[]> {
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });
   if (error || !data) return [];
-  return data as Message[];
+  return (data as Record<string, unknown>[])
+    .map(normalizeMessage)
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime() ||
+        a.id.localeCompare(b.id),
+    );
+}
+
+export async function fetchBookingReads(
+  bookingId: string,
+): Promise<BookingRead[]> {
+  const { data, error } = await supabase
+    .from("booking_reads")
+    .select("*")
+    .eq("booking_id", bookingId);
+  return error || !data ? [] : (data as BookingRead[]);
+}
+
+export async function fetchUnreadCounts(
+  bookingIds: string[],
+  userId: string,
+): Promise<Record<string, number>> {
+  if (bookingIds.length === 0) return {};
+
+  const [messagesResult, readsResult] = await Promise.all([
+    supabase
+      .from("messages")
+      .select("booking_id, sender_id, created_at")
+      .in("booking_id", bookingIds),
+    supabase
+      .from("booking_reads")
+      .select("booking_id, last_read_at")
+      .eq("user_id", userId)
+      .in("booking_id", bookingIds),
+  ]);
+
+  const reads = new Map(
+    (readsResult.data ?? []).map((row) => [
+      row.booking_id as string,
+      new Date(row.last_read_at as string).getTime(),
+    ]),
+  );
+  const counts: Record<string, number> = {};
+  for (const row of messagesResult.data ?? []) {
+    const bookingId = row.booking_id as string;
+    if (row.sender_id === userId) continue;
+    const sentAt = new Date(row.created_at as string).getTime();
+    if (sentAt > (reads.get(bookingId) ?? 0)) {
+      counts[bookingId] = (counts[bookingId] ?? 0) + 1;
+    }
+  }
+  return counts;
 }
 
 export async function fetchProviderProfile(
@@ -190,7 +258,19 @@ export async function createBooking(input: {
   address: string;
   notes: string;
   price: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationLabel?: string | null;
 }): Promise<{ id?: string; error?: string }> {
+  const latitude = input.latitude ?? null;
+  const longitude = input.longitude ?? null;
+  if ((latitude === null) !== (longitude === null)) {
+    return { error: "พิกัดจุดนัดหมายไม่ครบถ้วน" };
+  }
+  if (latitude !== null && !isValidCoordinate(latitude, longitude)) {
+    return { error: "พิกัดจุดนัดหมายไม่ถูกต้อง" };
+  }
+
   const { data, error } = await supabase
     .from("bookings")
     .insert({
@@ -199,6 +279,9 @@ export async function createBooking(input: {
       scheduled_at: input.scheduledAt,
       address: input.address,
       notes: input.notes || null,
+      latitude,
+      longitude,
+      location_label: latitude !== null ? input.locationLabel ?? null : null,
       price: input.price,
       status: "pending",
       payment_status: "unpaid",
@@ -274,20 +357,116 @@ export async function confirmPayment(
   return {};
 }
 
+export interface ChatMessageInput {
+  bookingId: string;
+  senderId: string;
+  body?: string;
+  type?: MessageType;
+  latitude?: number | null;
+  longitude?: number | null;
+  imagePath?: string | null;
+}
+
 export async function sendMessage(
-  bookingId: string,
-  senderId: string,
-  body: string,
+  input: ChatMessageInput,
 ): Promise<{ error?: string }> {
-  const trimmed = body.trim();
-  if (!trimmed) return { error: "กรุณาพิมพ์ข้อความ" };
+  const bookingId = String(input.bookingId ?? "");
+  if (!bookingId) return { error: "ไม่พบรายการจอง" };
+
+  const type = input.type ?? "text";
+  const body = String(input.body ?? "").trim().slice(0, 2000);
+  if (type === "text" && !body) return { error: "กรุณาพิมพ์ข้อความ" };
+
+  let latitude: number | null = null;
+  let longitude: number | null = null;
+  let expiresAt: string | null = null;
+  let imagePath: string | null = null;
+
+  if (type === "location") {
+    latitude = input.latitude ?? null;
+    longitude = input.longitude ?? null;
+    if (!isValidCoordinate(latitude, longitude)) {
+      return { error: "พิกัดไม่ถูกต้อง" };
+    }
+    expiresAt = locationExpiresAt();
+  }
+
+  if (type === "image") {
+    imagePath = input.imagePath ?? null;
+    if (
+      !imagePath ||
+      !imagePath.startsWith(`${bookingId}/${input.senderId}/`) ||
+      imagePath.includes("..")
+    ) {
+      return { error: "ไฟล์รูปภาพไม่ถูกต้อง" };
+    }
+  }
+
   const { error } = await supabase.from("messages").insert({
     booking_id: bookingId,
-    sender_id: senderId,
-    body: trimmed.slice(0, 2000),
+    sender_id: input.senderId,
+    body,
+    message_type: type,
+    latitude,
+    longitude,
+    location_label: type === "location" ? body || null : null,
+    image_path: imagePath,
+    expires_at: expiresAt,
   });
   if (error) return { error: error.message };
   return {};
+}
+
+export async function markChatRead(
+  bookingId: string,
+  userId: string,
+): Promise<{ error?: string }> {
+  const { error } = await supabase.from("booking_reads").upsert(
+    {
+      booking_id: bookingId,
+      user_id: userId,
+      last_read_at: new Date().toISOString(),
+    },
+    { onConflict: "booking_id,user_id" },
+  );
+  return error ? { error: error.message } : {};
+}
+
+const CHAT_IMAGE_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+export async function uploadChatImage(input: {
+  bookingId: string;
+  userId: string;
+  uri: string;
+  mimeType: string;
+}): Promise<{ path?: string; error?: string }> {
+  const extension = CHAT_IMAGE_EXTENSIONS[input.mimeType];
+  if (!extension) return { error: "รองรับเฉพาะรูปภาพ JPG, PNG และ WEBP" };
+
+  const blob = await fetch(input.uri).then((response) => response.blob());
+  if (blob.size > 5 * 1024 * 1024) {
+    return { error: "ขนาดรูปต้องไม่เกิน 5 MB" };
+  }
+
+  const path = `${input.bookingId}/${input.userId}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage
+    .from("chat-images")
+    .upload(path, blob, { contentType: input.mimeType, upsert: false });
+  if (error) return { error: error.message };
+  return { path };
+}
+
+export async function fetchChatImageUrl(
+  path: string,
+): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from("chat-images")
+    .createSignedUrl(path, 60 * 60);
+  return error ? null : (data?.signedUrl ?? null);
 }
 
 export async function submitReview(input: {

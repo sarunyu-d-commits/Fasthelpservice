@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import { BookingLocationCard } from "@/components/booking-location-card";
 import { ChatBox } from "@/components/chat-box";
 import { PromptPayQR } from "@/components/promptpay-qr";
 import { ReviewForm } from "@/components/review-form";
@@ -25,11 +26,13 @@ import {
 import {
   confirmPayment,
   fetchBookingById,
+  fetchBookingReads,
   fetchMessages,
   fetchProviderProfile,
   updateBookingStatus,
 } from "@/lib/api";
 import { formatDateTime, formatTHB } from "@/lib/format";
+import { isValidCoordinate } from "@/lib/location";
 import type { BookingStatus } from "@/lib/types";
 import { useAsyncData } from "@/lib/use-async-data";
 import { useAuth } from "@/providers/auth";
@@ -55,13 +58,14 @@ export default function BookingDetailScreen() {
     if (!user) return null;
     const booking = await fetchBookingById(id);
     if (!booking) return null;
-    const [messages, providerProfile] = await Promise.all([
+    const [messages, reads, providerProfile] = await Promise.all([
       fetchMessages(id),
+      fetchBookingReads(id),
       booking.provider_id
         ? fetchProviderProfile(booking.provider_id)
         : Promise.resolve(null),
     ]);
-    return { booking, messages, providerProfile };
+    return { booking, messages, reads, providerProfile };
   });
 
   if (authLoading || loading) return <LoadingView />;
@@ -94,7 +98,13 @@ export default function BookingDetailScreen() {
     );
   }
 
-  const { booking, messages, providerProfile } = data;
+  const { booking, messages, reads, providerProfile } = data;
+  const bookingLocation =
+    booking.latitude !== null &&
+    booking.longitude !== null &&
+    isValidCoordinate(booking.latitude, booking.longitude)
+      ? { latitude: booking.latitude, longitude: booking.longitude }
+      : null;
   const isCustomer = booking.customer_id === user.id;
   const isProvider = booking.provider_id === user.id;
   const isAdmin = profile?.role === "admin";
@@ -230,6 +240,16 @@ export default function BookingDetailScreen() {
         </View>
       </Card>
 
+      {bookingLocation ? (
+        <View style={styles.gap}>
+          <BookingLocationCard
+            latitude={bookingLocation.latitude}
+            longitude={bookingLocation.longitude}
+            label={booking.location_label}
+          />
+        </View>
+      ) : null}
+
       {isCustomer ? (
         <Card style={styles.gap}>
           <Text style={styles.sectionTitle}>ชำระเงิน</Text>
@@ -310,7 +330,9 @@ export default function BookingDetailScreen() {
           <ChatBox
             bookingId={booking.id}
             currentUserId={user.id}
+            otherUserId={booking.provider_id}
             initialMessages={messages}
+            reads={reads}
           />
         </Card>
       ) : null}

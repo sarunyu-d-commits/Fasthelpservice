@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { updateBookingStatus } from "@/app/actions/bookings";
+import { BookingMap } from "@/components/booking-map";
 import { Alert } from "@/components/form";
 import { ChatBox } from "@/components/chat-box";
 import {
@@ -12,8 +13,14 @@ import {
   UserIcon,
 } from "@/components/icons";
 import { PaymentBadge, StatusBadge } from "@/components/ui";
-import { getAuthContext, getBookingById, getMessages } from "@/lib/data";
+import {
+  getAuthContext,
+  getBookingById,
+  getBookingReads,
+  getMessages,
+} from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
+import { isValidCoordinate } from "@/lib/location";
 
 export const metadata: Metadata = { title: "รายละเอียดงาน" };
 
@@ -41,7 +48,16 @@ export default async function ProviderJobPage({
   if (!booking) notFound();
   if (booking.provider_id !== auth.user.id) redirect("/provider");
 
-  const messages = await getMessages(id);
+  const [messages, reads] = await Promise.all([
+    getMessages(id),
+    getBookingReads(id),
+  ]);
+  const bookingLocation =
+    booking.latitude !== null &&
+    booking.longitude !== null &&
+    isValidCoordinate(booking.latitude, booking.longitude)
+      ? { latitude: booking.latitude, longitude: booking.longitude }
+      : null;
   const errorMessage = error
     ? (ERROR_MESSAGES[error] ?? decodeURIComponent(error))
     : null;
@@ -123,6 +139,21 @@ export default async function ProviderJobPage({
             </dl>
           </div>
 
+          {bookingLocation ? (
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+              <h2 className="font-display text-lg font-bold text-ink">
+                แผนที่จุดนัดหมาย
+              </h2>
+              <div className="mt-3">
+                <BookingMap
+                  latitude={bookingLocation.latitude}
+                  longitude={bookingLocation.longitude}
+                  label={booking.location_label}
+                />
+              </div>
+            </div>
+          ) : null}
+
           <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
             <h2 className="mb-3 font-display text-lg font-bold text-ink">
               แชทกับลูกค้า
@@ -130,7 +161,9 @@ export default async function ProviderJobPage({
             <ChatBox
               bookingId={booking.id}
               currentUserId={auth.user.id}
+              otherUserId={booking.customer_id}
               initialMessages={messages}
+              reads={reads}
             />
           </div>
         </div>

@@ -63,8 +63,14 @@ create table if not exists public.bookings (
   payment_status text not null default 'unpaid'
     check (payment_status in ('unpaid', 'pending', 'paid', 'refunded')),
   payment_method text not null default 'promptpay',
+  latitude double precision,
+  longitude double precision,
+  location_label text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint bookings_latitude_check check (latitude between -90 and 90),
+  constraint bookings_longitude_check check (longitude between -180 and 180),
+  constraint bookings_coordinates_pair check ((latitude is null) = (longitude is null))
 );
 
 create index if not exists bookings_customer_idx on public.bookings (customer_id, created_at desc);
@@ -75,11 +81,80 @@ create table if not exists public.messages (
   id uuid primary key default gen_random_uuid(),
   booking_id uuid not null references public.bookings (id) on delete cascade,
   sender_id uuid not null references public.profiles (id) on delete cascade,
-  body text not null check (length(btrim(body)) > 0),
-  created_at timestamptz not null default now()
+  body text not null default '' check (
+    message_type <> 'text' or length(btrim(body)) > 0
+  ),
+  message_type text not null default 'text'
+    check (message_type in ('text', 'location', 'image')),
+  latitude double precision,
+  longitude double precision,
+  location_label text,
+  image_path text,
+  expires_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint messages_latitude_check check (latitude between -90 and 90),
+  constraint messages_longitude_check check (longitude between -180 and 180)
 );
 
 create index if not exists messages_booking_idx on public.messages (booking_id, created_at);
+
+create table if not exists public.booking_reads (
+  booking_id uuid not null references public.bookings (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  last_read_at timestamptz not null default now(),
+  primary key (booking_id, user_id)
+);
+
+-- Migration สำหรับฐานข้อมูลที่สร้างก่อนมีระบบตำแหน่ง/รูปภาพ/read receipt
+alter table public.bookings add column if not exists latitude double precision;
+alter table public.bookings add column if not exists longitude double precision;
+alter table public.bookings add column if not exists location_label text;
+alter table public.messages add column if not exists message_type text not null default 'text';
+alter table public.messages add column if not exists latitude double precision;
+alter table public.messages add column if not exists longitude double precision;
+alter table public.messages add column if not exists location_label text;
+alter table public.messages add column if not exists image_path text;
+alter table public.messages add column if not exists expires_at timestamptz;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.bookings'::regclass and conname = 'bookings_latitude_check'
+  ) then
+    alter table public.bookings add constraint bookings_latitude_check
+      check (latitude between -90 and 90) not valid;
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.bookings'::regclass and conname = 'bookings_longitude_check'
+  ) then
+    alter table public.bookings add constraint bookings_longitude_check
+      check (longitude between -180 and 180) not valid;
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.bookings'::regclass and conname = 'bookings_coordinates_pair'
+  ) then
+    alter table public.bookings add constraint bookings_coordinates_pair
+      check ((latitude is null) = (longitude is null)) not valid;
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.messages'::regclass and conname = 'messages_latitude_check'
+  ) then
+    alter table public.messages add constraint messages_latitude_check
+      check (latitude between -90 and 90) not valid;
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.messages'::regclass and conname = 'messages_longitude_check'
+  ) then
+    alter table public.messages add constraint messages_longitude_check
+      check (longitude between -180 and 180) not valid;
+  end if;
+end;
+$$;
 
 create table if not exists public.reviews (
   id uuid primary key default gen_random_uuid(),
@@ -221,6 +296,9 @@ begin
     new.scheduled_at := old.scheduled_at;
     new.address := old.address;
     new.notes := old.notes;
+    new.latitude := old.latitude;
+    new.longitude := old.longitude;
+    new.location_label := old.location_label;
     if new.status is distinct from old.status then
       if new.status not in ('in_progress', 'completed') then
         raise exception 'ไม่สามารถเปลี่ยนสถานะงานนี้ได้' using errcode = '42501';
@@ -237,6 +315,9 @@ begin
     new.scheduled_at := old.scheduled_at;
     new.address := old.address;
     new.notes := old.notes;
+    new.latitude := old.latitude;
+    new.longitude := old.longitude;
+    new.location_label := old.location_label;
     if not (
       old.provider_id is null
       and old.status = 'pending'
@@ -345,6 +426,7 @@ alter table public.provider_profiles enable row level security;
 alter table public.provider_services enable row level security;
 alter table public.bookings enable row level security;
 alter table public.messages enable row level security;
+alter table public.booking_reads enable row level security;
 alter table public.reviews enable row level security;
 
 -- profiles
@@ -445,6 +527,22 @@ create policy "participants send messages" on public.messages
     sender_id = auth.uid() and public.is_booking_participant(booking_id)
   );
 
+-- booking_reads (read receipt / unread count)
+drop policy if exists "participants read booking reads" on public.booking_reads;
+create policy "participants read booking reads" on public.booking_reads
+  for select using (public.is_booking_participant(booking_id));
+
+drop policy if exists "participants upsert own read state" on public.booking_reads;
+create policy "participants upsert own read state" on public.booking_reads
+  for insert with check (
+    user_id = auth.uid() and public.is_booking_participant(booking_id)
+  );
+
+drop policy if exists "participants update own read state" on public.booking_reads;
+create policy "participants update own read state" on public.booking_reads
+  for update using (user_id = auth.uid())
+  with check (user_id = auth.uid() and public.is_booking_participant(booking_id));
+
 -- reviews
 drop policy if exists "reviews are readable" on public.reviews;
 create policy "reviews are readable" on public.reviews
@@ -476,6 +574,7 @@ grant select, insert, update on public.provider_profiles to authenticated;
 grant select, insert, delete on public.provider_services to authenticated;
 grant select, insert, update on public.bookings to authenticated;
 grant select, insert on public.messages to authenticated;
+grant select, insert, update on public.booking_reads to authenticated;
 grant insert on public.reviews to authenticated;
 grant update on public.services to authenticated;
 
@@ -497,6 +596,60 @@ exception
   when duplicate_object then null;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- Chat images (private Supabase Storage)
+-- path: {booking_id}/{sender_id}/{uuid}.{ext}
+-- ---------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'chat-images', 'chat-images', false, 5242880,
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update set
+  public = false,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+create or replace function public.is_chat_image_path_allowed(
+  p_path text,
+  p_owner uuid default auth.uid()
+)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = public, storage
+as $$
+declare
+  v_booking uuid;
+  v_owner uuid;
+begin
+  v_booking := nullif((storage.foldername(p_path))[1], '')::uuid;
+  v_owner := nullif((storage.foldername(p_path))[2], '')::uuid;
+  return v_booking is not null
+    and v_owner is not null
+    and (p_owner is null or v_owner = p_owner)
+    and public.is_booking_participant(v_booking);
+exception
+  when others then return false;
+end;
+$$;
+
+drop policy if exists "participants read chat images" on storage.objects;
+create policy "participants read chat images" on storage.objects
+  for select using (
+    bucket_id = 'chat-images'
+    and public.is_chat_image_path_allowed(name)
+  );
+
+drop policy if exists "participants upload chat images" on storage.objects;
+create policy "participants upload chat images" on storage.objects
+  for insert with check (
+    bucket_id = 'chat-images'
+    and public.is_chat_image_path_allowed(name, auth.uid())
+  );
 
 -- ---------------------------------------------------------------------------
 -- Seed: service catalog

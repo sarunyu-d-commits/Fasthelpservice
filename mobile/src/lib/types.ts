@@ -56,16 +56,33 @@ export interface Booking {
   price: number;
   payment_status: PaymentStatus;
   payment_method: string;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string | null;
   created_at: string;
   updated_at: string;
 }
+
+export type MessageType = "text" | "location" | "image";
 
 export interface Message {
   id: string;
   booking_id: string;
   sender_id: string;
   body: string;
+  message_type: MessageType;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string | null;
+  image_path: string | null;
+  expires_at: string | null;
   created_at: string;
+}
+
+export interface BookingRead {
+  booking_id: string;
+  user_id: string;
+  last_read_at: string;
 }
 
 export interface Review {

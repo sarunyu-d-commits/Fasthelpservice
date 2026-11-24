@@ -1,6 +1,7 @@
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
@@ -8,7 +9,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -35,12 +35,18 @@ export function BookingForm({
   defaultAddress?: string;
 }) {
   const router = useRouter();
-  const initial = useMemo(tomorrowMorning, []);
+  const initial = useMemo(() => tomorrowMorning(), []);
   const [datePart, setDatePart] = useState(initial);
   const [timePart, setTimePart] = useState(initial);
   const [picker, setPicker] = useState<"date" | "time" | null>(null);
   const [address, setAddress] = useState(defaultAddress);
   const [notes, setNotes] = useState("");
+  const [coordinates, setCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -59,6 +65,29 @@ export function BookingForm({
     if (picker === "date") setDatePart(selected);
     if (picker === "time") setTimePart(selected);
     if (Platform.OS === "ios") setPicker(null);
+  }
+
+  async function handleUseLocation() {
+    setLocationError(null);
+    setLocating(true);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        setLocationError("กรุณาอนุญาตแอปเข้าถึงตำแหน่งเพื่อบันทึกจุดนัดหมาย");
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      setCoordinates({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+    } catch {
+      setLocationError("อ่านตำแหน่งไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setLocating(false);
+    }
   }
 
   async function handleSubmit() {
@@ -81,6 +110,11 @@ export function BookingForm({
       address: address.trim(),
       notes: notes.trim(),
       price: service.base_price,
+      latitude: coordinates?.latitude ?? null,
+      longitude: coordinates?.longitude ?? null,
+      locationLabel: coordinates
+        ? "ตำแหน่งที่ลูกค้าบันทึกตอนจอง"
+        : null,
     });
     setSubmitting(false);
 
@@ -134,6 +168,23 @@ export function BookingForm({
         textAlignVertical="top"
         style={styles.multiline}
       />
+
+      <Text style={styles.label}>พิกัดจุดนัดหมาย (ไม่บังคับ)</Text>
+      <Button
+        title={coordinates ? "อัปเดตตำแหน่งปัจจุบัน" : "ใช้ตำแหน่งปัจจุบัน"}
+        variant="secondary"
+        onPress={() => void handleUseLocation()}
+        loading={locating}
+      />
+      {coordinates ? (
+        <Text style={styles.locationStatus}>
+          ✅ บันทึกพิกัด {coordinates.latitude.toFixed(5)},{" "}
+          {coordinates.longitude.toFixed(5)} แล้ว
+        </Text>
+      ) : null}
+      {locationError ? (
+        <Text style={styles.locationError}>{locationError}</Text>
+      ) : null}
 
       <TextField
         label="รายละเอียดเพิ่มเติม (ไม่บังคับ)"
@@ -207,6 +258,14 @@ const styles = StyleSheet.create({
   multiline: {
     minHeight: 84,
     paddingTop: spacing.md,
+  },
+  locationStatus: {
+    fontSize: 12,
+    color: colors.emerald700,
+  },
+  locationError: {
+    fontSize: 12,
+    color: colors.rose700,
   },
   summary: {
     borderRadius: radius.lg,

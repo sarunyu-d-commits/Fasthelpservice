@@ -25,7 +25,7 @@ export default function ServicesScreen() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | undefined>();
 
-  const list = services ?? [];
+  const list = useMemo(() => services ?? [], [services]);
   const categories = useMemo(
     () => Array.from(new Set(list.map((service) => service.category))),
     [list],

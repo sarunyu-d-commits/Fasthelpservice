@@ -18,6 +18,7 @@ import {
   getProviderJobs,
   getProviderProfile,
   getProviderServiceIds,
+  getUnreadCounts,
 } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 
@@ -46,6 +47,10 @@ export default async function ProviderDashboardPage({
     getProviderProfile(auth.user.id),
     getProviderServiceIds(auth.user.id),
   ]);
+  const unread = await getUnreadCounts(
+    myJobs.map((job) => job.id),
+    auth.user.id,
+  );
 
   const { error } = await searchParams;
   const errorMessage = error
@@ -222,9 +227,16 @@ export default async function ProviderDashboardPage({
                   <p className="mt-1 truncate text-sm text-slate-500">
                     {formatDateTime(job.scheduled_at)} · {job.address}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    ลูกค้า: {job.customer?.full_name || "-"}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <p className="text-xs text-slate-400">
+                      ลูกค้า: {job.customer?.full_name || "-"}
+                    </p>
+                    {unread[job.id] ? (
+                      <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                        {unread[job.id]} ข้อความใหม่
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <ChevronRightIcon className="size-5 shrink-0 text-slate-300" />
               </Link>

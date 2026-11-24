@@ -1,0 +1,54 @@
+@startuml
+title ภาพที่ 3-5 ลำดับการทำงานของระบบแชท (Sequence Diagram)
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Tahoma
+skinparam defaultFontColor #000000
+skinparam defaultFontSize 13
+skinparam dpi 150
+skinparam shadowing false
+skinparam roundcorner 4
+skinparam ArrowColor #000000
+skinparam ArrowThickness 1.1
+skinparam ArrowFontColor #000000
+skinparam ArrowFontSize 12
+skinparam titleFontSize 17
+skinparam titleFontColor #000000
+skinparam participantBackgroundColor #FFFFFF
+skinparam participantBorderColor #000000
+skinparam participantFontColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #000000
+skinparam actorFontColor #000000
+skinparam databaseBackgroundColor #FFFFFF
+skinparam databaseBorderColor #000000
+skinparam sequenceLifeLineBorderColor #000000
+skinparam sequenceGroupBackgroundColor #FFFFFF
+skinparam sequenceGroupBorderColor #000000
+skinparam noteBackgroundColor #F7F7F7
+skinparam noteBorderColor #000000
+
+actor "ลูกค้า" as Customer
+participant "ChatBox\n(Client Component)" as UI
+participant "Server Action\nsendMessage" as Action
+database "Supabase\nmessages" as DB
+participant "Supabase\nRealtime" as RT
+actor "ช่าง" as Provider
+
+Customer -> UI : พิมพ์ข้อความและกดส่ง
+UI -> Action : FormData(booking_id, body)
+Action -> Action : ตรวจ session ด้วย Supabase Auth
+Action -> DB : INSERT INTO messages
+note right of DB
+  RLS ตรวจว่า sender_id = auth.uid()
+  และผู้ส่งต้องเป็นผู้ร่วมการจอง
+end note
+DB --> Action : บันทึกสำเร็จ
+Action --> UI : revalidatePath()
+DB -> RT : Broadcast INSERT\n(filter booking_id)
+RT --> Provider : ส่งข้อความใหม่แบบ Real-time
+Provider -> RT : เปิดช่อง messages-{bookingId}
+RT --> Provider : ข้อความที่ยังไม่ได้รับ
+Provider -> Provider : แสดงข้อความและเลื่อนอัตโนมัติ
+
+@enduml

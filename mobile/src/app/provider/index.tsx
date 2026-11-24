@@ -17,6 +17,7 @@ import {
   fetchProviderJobs,
   fetchProviderProfile,
   fetchProviderServiceIds,
+  fetchUnreadCounts,
 } from "@/lib/api";
 import { formatDateTime, formatTHB } from "@/lib/format";
 import { useAsyncData } from "@/lib/use-async-data";
@@ -37,7 +38,11 @@ export default function ProviderDashboardScreen() {
       fetchProviderProfile(user.id),
       fetchProviderServiceIds(user.id),
     ]);
-    return { openJobs, myJobs, provider, serviceIds };
+    const unread = await fetchUnreadCounts(
+      myJobs.map((job) => job.id),
+      user.id,
+    );
+    return { openJobs, myJobs, provider, serviceIds, unread };
   });
 
   if (authLoading) return <LoadingView />;
@@ -49,7 +54,7 @@ export default function ProviderDashboardScreen() {
   if (profile?.role !== "provider") return <Redirect href="/bookings" />;
   if (loading || !data) return <LoadingView />;
 
-  const { openJobs, myJobs, provider, serviceIds } = data;
+  const { openJobs, myJobs, provider, serviceIds, unread } = data;
   const activeJobs = myJobs.filter(
     (job) => job.status === "accepted" || job.status === "in_progress",
   );
@@ -209,6 +214,11 @@ export default function ProviderDashboardScreen() {
                   <Text style={styles.jobTitle} numberOfLines={1}>
                     {job.service?.name ?? "บริการ"}
                   </Text>
+                  {unread[job.id] ? (
+                    <Text style={styles.unread}>
+                      {unread[job.id]} ข้อความใหม่
+                    </Text>
+                  ) : null}
                   <StatusBadge status={job.status} />
                   <PaymentBadge status={job.payment_status} />
                 </View>
@@ -376,6 +386,15 @@ const styles = StyleSheet.create({
     fontWeight: font.extrabold,
     letterSpacing: -0.2,
     color: colors.ink,
+  },
+  unread: {
+    borderRadius: radius.full,
+    backgroundColor: colors.blue600,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    fontSize: 11,
+    fontWeight: font.semibold,
+    color: colors.white,
   },
   meta: {
     fontSize: 12,

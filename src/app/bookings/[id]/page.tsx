@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { confirmPayment, updateBookingStatus } from "@/app/actions/bookings";
+import { BookingMap } from "@/components/booking-map";
 import { ChatBox } from "@/components/chat-box";
 import {
   ArrowLeftIcon,
@@ -16,8 +17,15 @@ import { Alert } from "@/components/form";
 import { PromptPayQR } from "@/components/promptpay-qr";
 import { ReviewForm } from "@/components/review-form";
 import { PaymentBadge, StatusBadge } from "@/components/ui";
-import { getAuthContext, getBookingById, getMessages, getProviderProfile } from "@/lib/data";
+import {
+  getAuthContext,
+  getBookingById,
+  getBookingReads,
+  getMessages,
+  getProviderProfile,
+} from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
+import { isValidCoordinate } from "@/lib/location";
 import type { BookingStatus } from "@/lib/types";
 
 export const metadata: Metadata = { title: "รายละเอียดการจอง" };
@@ -64,11 +72,18 @@ export default async function BookingDetailPage({
   if (!isCustomer && !isProvider) notFound();
   if (isProvider && !isCustomer) redirect(`/provider/jobs/${id}`);
 
-  const [messages, providerProfile] = await Promise.all([
+  const [messages, reads, providerProfile] = await Promise.all([
     getMessages(id),
+    getBookingReads(id),
     booking.provider_id ? getProviderProfile(booking.provider_id) : null,
   ]);
 
+  const bookingLocation =
+    booking.latitude !== null &&
+    booking.longitude !== null &&
+    isValidCoordinate(booking.latitude, booking.longitude)
+      ? { latitude: booking.latitude, longitude: booking.longitude }
+      : null;
   const currentStep = timelineIndex(booking.status);
   const promptpayId = process.env.NEXT_PUBLIC_PROMPTPAY_ID ?? "";
   const receiverName = process.env.NEXT_PUBLIC_PROMPTPAY_NAME ?? "FastHelp";
@@ -159,6 +174,21 @@ export default async function BookingDetailPage({
             </dl>
           </div>
 
+          {bookingLocation ? (
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
+              <h2 className="font-display text-lg font-bold text-ink">
+                แผนที่จุดนัดหมาย
+              </h2>
+              <div className="mt-3">
+                <BookingMap
+                  latitude={bookingLocation.latitude}
+                  longitude={bookingLocation.longitude}
+                  label={booking.location_label}
+                />
+              </div>
+            </div>
+          ) : null}
+
           <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card">
             <h2 className="font-display text-lg font-bold text-ink">ชำระเงิน</h2>
 
@@ -245,7 +275,9 @@ export default async function BookingDetailPage({
             <ChatBox
               bookingId={booking.id}
               currentUserId={auth.user.id}
+              otherUserId={booking.provider_id}
               initialMessages={messages}
+              reads={reads}
             />
           </div>
         </div>

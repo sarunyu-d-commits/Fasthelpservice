@@ -35,6 +35,35 @@ export function BookingForm({
     suggested.setHours(9, 0, 0, 0);
     return toLocalInput(suggested);
   });
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  function handleUseLocation() {
+    if (!navigator.geolocation) {
+      setLocationError("เบราว์เซอร์นี้ไม่รองรับการอ่านตำแหน่ง");
+      return;
+    }
+    setLocationLoading(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocation({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        });
+        setLocationLoading(false);
+      },
+      () => {
+        setLocationError("ไม่อนุญาตเข้าถึงตำแหน่ง หรืออ่านตำแหน่งไม่สำเร็จ");
+        setLocationLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
 
   const total = useMemo(() => service.base_price, [service.base_price]);
 
@@ -50,6 +79,21 @@ export function BookingForm({
 
       <input type="hidden" name="service_id" value={service.id} />
       <input type="hidden" name="scheduled_at_iso" value={scheduledAtIso} />
+      <input
+        type="hidden"
+        name="latitude"
+        value={location?.latitude ?? ""}
+      />
+      <input
+        type="hidden"
+        name="longitude"
+        value={location?.longitude ?? ""}
+      />
+      <input
+        type="hidden"
+        name="location_label"
+        value={location ? "ตำแหน่งที่ลูกค้าบันทึกตอนจอง" : ""}
+      />
 
       <div>
         <label htmlFor="scheduled_at" className={labelClass}>
@@ -81,6 +125,32 @@ export function BookingForm({
           placeholder="บ้านเลขที่ / อาคาร / ห้อง / จุดสังเกต"
           className={inputClass}
         />
+      </div>
+
+      <div>
+        <p className={labelClass}>พิกัดจุดนัดหมาย (ไม่บังคับ)</p>
+        <button
+          type="button"
+          onClick={handleUseLocation}
+          disabled={locationLoading}
+          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+        >
+          <span aria-hidden>📍</span>
+          {locationLoading
+            ? "กำลังอ่านตำแหน่ง..."
+            : location
+              ? "อัปเดตตำแหน่งปัจจุบัน"
+              : "ใช้ตำแหน่งปัจจุบัน"}
+        </button>
+        {location ? (
+          <p className="mt-1.5 text-xs text-emerald-700">
+            บันทึกพิกัด {location.latitude.toFixed(5)},{" "}
+            {location.longitude.toFixed(5)} แล้ว ช่างจะเห็นแผนที่ในหน้างาน
+          </p>
+        ) : null}
+        {locationError ? (
+          <p className="mt-1.5 text-xs text-rose-600">{locationError}</p>
+        ) : null}
       </div>
 
       <div>

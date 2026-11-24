@@ -37,7 +37,21 @@
           "imageWidth": 76
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "FastHelp ใช้ตำแหน่งของคุณเพื่อบันทึกจุดนัดหมายและแชร์พิกัดในแชทกับช่าง"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FastHelp ใช้รูปภาพจากคลังของคุณเพื่อแนบในแชทกับช่าง",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,0 +1,80 @@
+@startuml
+title ภาพที่ 3-1 สถาปัตยกรรมระบบ FastHelp
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Tahoma
+skinparam defaultFontColor #000000
+skinparam defaultFontSize 14
+skinparam dpi 150
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam ArrowColor #000000
+skinparam ArrowThickness 1.1
+skinparam ArrowFontColor #000000
+skinparam ArrowFontSize 12
+skinparam titleFontSize 17
+skinparam titleFontColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam packageFontColor #000000
+skinparam nodeBackgroundColor #FFFFFF
+skinparam nodeBorderColor #000000
+skinparam cloudBackgroundColor #FFFFFF
+skinparam cloudBorderColor #000000
+skinparam databaseBackgroundColor #FFFFFF
+skinparam databaseBorderColor #000000
+skinparam componentBackgroundColor #FFFFFF
+skinparam componentBorderColor #000000
+skinparam componentFontColor #000000
+skinparam noteBackgroundColor #F7F7F7
+skinparam noteBorderColor #000000
+
+left to right direction
+
+actor "ลูกค้า" as Customer
+actor "ผู้ให้บริการ\n(ช่าง)" as Provider
+actor "ผู้ดูแลระบบ" as Admin
+
+rectangle "เว็บแอปพลิเคชัน (Next.js 16)" as Web {
+  component "หน้าเว็บ / PWA\nReact 19 + Tailwind CSS 4" as WebUI
+  component "Server Actions\nจอง · รับงาน · แชท · รีวิว" as Actions
+  component "Proxy (Middleware)\nตรวจ session และสิทธิ์" as Proxy
+}
+
+rectangle "แอปพลิเคชันมือถือ (Expo)" as Mobile {
+  component "Expo Router\nReact Native" as MobileUI
+  component "Supabase Client" as MobileClient
+}
+
+cloud "Supabase Cloud" as Supabase {
+  component "Supabase Auth\nอีเมล / รีเซ็ตรหัสผ่าน" as Auth
+  database "PostgreSQL\nตาราง + RLS + Trigger" as DB
+  component "Realtime\n(WebSocket)" as Realtime
+}
+
+rectangle "ชำระเงิน (ระดับต้นแบบ)" as Payment {
+  component "PromptPay QR\nมาตรฐาน EMVCo" as QR
+}
+
+Customer --> WebUI
+Provider --> WebUI
+Admin --> WebUI
+Customer --> MobileUI
+Provider --> MobileUI
+
+WebUI --> Proxy
+Proxy --> Auth
+Actions --> DB
+MobileClient --> Auth
+MobileClient --> DB
+WebUI <--> Realtime
+MobileUI <--> Realtime
+WebUI --> QR
+MobileUI --> QR
+
+note bottom of DB
+  ทุกตารางเปิด Row Level Security
+  และใช้ Trigger ล็อกฟิลด์สำคัญ
+end note
+
+@enduml

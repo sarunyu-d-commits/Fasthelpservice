@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import { isAuthPath } from "@/lib/navigation";
 import type { Role } from "@/lib/types";
 import {
   CalendarIcon,
@@ -32,15 +34,22 @@ const adminItems = [
   { href: "/account", label: "บัญชี", Icon: UserIcon },
 ];
 
+const subscribeToNothing = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function BottomNav({ role }: { role: Role | undefined }) {
   const pathname = usePathname();
 
-  if (
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname === "/forgot-password" ||
-    pathname === "/reset-password"
-  ) {
+  // usePathname อาจยังชี้ไปที่เส้นทางเก่าขณะ hydrate หลัง navigation
+  // ให้ server และ client render ค่าเดียวกันก่อน แล้วค่อยอ่าน pathname หลัง mount
+  const mounted = useSyncExternalStore(
+    subscribeToNothing,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+
+  if (!mounted || isAuthPath(pathname)) {
     return null;
   }
 

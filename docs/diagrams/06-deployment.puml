@@ -1,0 +1,77 @@
+@startuml
+title ภาพที่ 3-6 แผนภาพการติดตั้งและเผยแพร่ (Deployment Diagram)
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Tahoma
+skinparam defaultFontColor #000000
+skinparam defaultFontSize 14
+skinparam dpi 150
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam ArrowColor #000000
+skinparam ArrowThickness 1.1
+skinparam ArrowFontColor #000000
+skinparam ArrowFontSize 12
+skinparam titleFontSize 17
+skinparam titleFontColor #000000
+skinparam nodeBackgroundColor #FFFFFF
+skinparam nodeBorderColor #000000
+skinparam cloudBackgroundColor #FFFFFF
+skinparam cloudBorderColor #000000
+skinparam artifactBackgroundColor #FFFFFF
+skinparam artifactBorderColor #000000
+skinparam componentBackgroundColor #FFFFFF
+skinparam componentBorderColor #000000
+skinparam noteBackgroundColor #F7F7F7
+skinparam noteBorderColor #000000
+
+node "เครื่องผู้ใช้" {
+  artifact "เบราว์เซอร์ / PWA" as Browser
+  artifact "แอป Android\n(APK / AAB)" as Android
+  artifact "แอป iOS\n(TestFlight / App Store)" as iOS
+}
+
+node "Vercel" {
+  artifact "Next.js 16 Web App\nSSR + Server Actions + PWA" as Web
+}
+
+cloud "Supabase Cloud" {
+  component "Auth" as Auth
+  database "PostgreSQL + RLS" as DB
+  component "Realtime" as RT
+}
+
+node "GitHub Actions" {
+  component "CI\nLint · Typecheck · Test · Build" as CI
+  component "Build Android APK" as APKCI
+}
+
+node "Expo EAS" {
+  component "EAS Build\nAndroid / iOS" as EAS
+}
+
+Browser --> Web : HTTPS
+Android --> Web : HTTPS / WebView (Capacitor)
+iOS --> Web : HTTPS
+Web --> Auth : Supabase SDK
+Web --> DB : SQL ผ่าน PostgREST
+Web <--> RT : WebSocket
+Android --> Auth
+Android --> DB
+Android <--> RT
+iOS --> Auth
+iOS --> DB
+
+CI --> Web : deploy อัตโนมัติเมื่อ push main
+APKCI --> Android : artifact APK
+EAS --> Android
+EAS --> iOS
+
+note right of Web
+  NEXT_PUBLIC_APP_URL
+  NEXT_PUBLIC_SUPABASE_URL
+  NEXT_PUBLIC_SUPABASE_ANON_KEY
+  NEXT_PUBLIC_PROMPTPAY_ID
+end note
+
+@enduml

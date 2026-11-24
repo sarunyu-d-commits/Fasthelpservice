@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CalendarIcon, MapPinIcon, PlusIcon } from "@/components/icons";
 import { EmptyState, PaymentBadge, StatusBadge } from "@/components/ui";
-import { getAuthContext, getCustomerBookings } from "@/lib/data";
+import { getAuthContext, getCustomerBookings, getUnreadCounts } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 
 export const metadata: Metadata = { title: "การจองของฉัน" };
@@ -14,6 +14,10 @@ export default async function BookingsPage() {
   if (auth.profile?.role === "provider") redirect("/provider");
 
   const bookings = await getCustomerBookings(auth.user.id);
+  const unread = await getUnreadCounts(
+    bookings.map((booking) => booking.id),
+    auth.user.id,
+  );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -83,11 +87,18 @@ export default async function BookingsPage() {
                     <span className="truncate">{booking.address}</span>
                   </p>
                   <div className="mt-3 flex items-center justify-between border-t border-dashed border-slate-100 pt-3">
-                    <span className="text-xs text-slate-400">
-                      {booking.provider?.full_name
-                        ? `ช่าง: ${booking.provider.full_name}`
-                        : "รอช่างรับงาน"}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-slate-400">
+                        {booking.provider?.full_name
+                          ? `ช่าง: ${booking.provider.full_name}`
+                          : "รอช่างรับงาน"}
+                      </span>
+                      {unread[booking.id] ? (
+                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                          {unread[booking.id]} ข้อความใหม่
+                        </span>
+                      ) : null}
+                    </div>
                     <span className="font-display font-bold text-blue-700">
                       {formatTHB(booking.price)}
                     </span>

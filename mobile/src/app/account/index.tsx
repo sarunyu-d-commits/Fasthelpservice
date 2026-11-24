@@ -1,5 +1,5 @@
 import { Redirect, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
@@ -32,11 +32,6 @@ function AccountForm({
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setFullName(initialName);
-    setPhone(initialPhone);
-  }, [initialName, initialPhone]);
 
   async function handleSave() {
     setError(null);
@@ -182,7 +177,7 @@ export default function AccountScreen() {
           <Text style={styles.metaValue}>{profile?.phone || "ยังไม่ระบุ"}</Text>
         </View>
         <View style={styles.metaRow}>
-          <Text style={styles.metaLabel}>สมาชิก منذ</Text>
+          <Text style={styles.metaLabel}>สมาชิกตั้งแต่</Text>
           <Text style={styles.metaValue}>
             {profile?.created_at ? formatDate(profile.created_at) : "-"}
           </Text>
@@ -219,6 +214,7 @@ export default function AccountScreen() {
       <Card style={styles.gap}>
         <Text style={styles.sectionTitle}>ข้อมูลส่วนตัว</Text>
         <AccountForm
+          key={`${user.id}:${profile?.full_name ?? ""}:${profile?.phone ?? ""}`}
           userId={user.id}
           initialName={profile?.full_name ?? ""}
           initialPhone={profile?.phone ?? ""}

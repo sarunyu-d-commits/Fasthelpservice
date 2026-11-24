@@ -3,6 +3,7 @@ import { SEED_SERVICES } from "./seed-services";
 import type {
   AuthContext,
   Booking,
+  BookingRead,
   BookingWithRelations,
   Message,
   OpenJob,
@@ -251,6 +252,19 @@ export async function getBookingById(
   }
 }
 
+function normalizeMessage(row: Record<string, unknown>): Message {
+  return {
+    ...(row as unknown as Message),
+    message_type: (row.message_type as Message["message_type"]) ?? "text",
+    body: typeof row.body === "string" ? row.body : "",
+    latitude: (row.latitude as number | null) ?? null,
+    longitude: (row.longitude as number | null) ?? null,
+    location_label: (row.location_label as string | null) ?? null,
+    image_path: (row.image_path as string | null) ?? null,
+    expires_at: (row.expires_at as string | null) ?? null,
+  };
+}
+
 export async function getMessages(bookingId: string): Promise<Message[]> {
   if (!isSupabaseConfigured()) return [];
 
@@ -263,9 +277,73 @@ export async function getMessages(bookingId: string): Promise<Message[]> {
       .order("created_at", { ascending: true });
 
     if (error || !data) return [];
-    return data as Message[];
+    return (data as Record<string, unknown>[])
+      .map(normalizeMessage)
+      .sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime() ||
+          a.id.localeCompare(b.id),
+      );
   } catch {
     return [];
+  }
+}
+
+export async function getBookingReads(
+  bookingId: string,
+): Promise<BookingRead[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("booking_reads")
+      .select("*")
+      .eq("booking_id", bookingId);
+    return error || !data ? [] : (data as BookingRead[]);
+  } catch {
+    return [];
+  }
+}
+
+export async function getUnreadCounts(
+  bookingIds: string[],
+  userId: string,
+): Promise<Record<string, number>> {
+  if (!isSupabaseConfigured() || bookingIds.length === 0) return {};
+
+  try {
+    const supabase = await createClient();
+    const [messagesResult, readsResult] = await Promise.all([
+      supabase
+        .from("messages")
+        .select("booking_id, sender_id, created_at")
+        .in("booking_id", bookingIds),
+      supabase
+        .from("booking_reads")
+        .select("booking_id, last_read_at")
+        .eq("user_id", userId)
+        .in("booking_id", bookingIds),
+    ]);
+
+    const reads = new Map(
+      (readsResult.data ?? []).map((row) => [
+        row.booking_id as string,
+        new Date(row.last_read_at as string).getTime(),
+      ]),
+    );
+    const counts: Record<string, number> = {};
+    for (const row of messagesResult.data ?? []) {
+      const bookingId = row.booking_id as string;
+      if (row.sender_id === userId) continue;
+      const sentAt = new Date(row.created_at as string).getTime();
+      if (sentAt > (reads.get(bookingId) ?? 0)) {
+        counts[bookingId] = (counts[bookingId] ?? 0) + 1;
+      }
+    }
+    return counts;
+  } catch {
+    return {};
   }
 }
 
