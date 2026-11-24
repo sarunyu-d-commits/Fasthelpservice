@@ -73,3 +73,12 @@ export function osmEmbed(lat: number, lng: number, delta = 0.006): string {
   });
   return `https://www.openstreetmap.org/export/embed.html?${params.toString()}`;
 }
+
+export function googleMapsApiKey(): string {
+  return process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+}
+
+export function googleMapsLink(lat: number, lng: number): string {
+  const params = new URLSearchParams({ api: "1", query: `${lat},${lng}` });
+  return `https://www.google.com/maps/search/?${params.toString()}`;
+}

@@ -597,6 +597,15 @@ exception
 end;
 $$;
 
+-- read receipt ต้องเป็น realtime ด้วย เพื่อให้สถานะ "อ่านแล้ว" อัปเดตทันที
+do $$
+begin
+  alter publication supabase_realtime add table public.booking_reads;
+exception
+  when duplicate_object then null;
+end;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- Chat images (private Supabase Storage)
 -- path: {booking_id}/{sender_id}/{uuid}.{ext}

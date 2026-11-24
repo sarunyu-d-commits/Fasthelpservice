@@ -6,8 +6,9 @@ import {
   sendMessage,
   type ChatMessageInput,
 } from "@/app/actions/messages";
+import { GoogleMap } from "@/components/google-map";
 import { formatTime } from "@/lib/format";
-import { isLocationExpired, osmEmbed, osmLink } from "@/lib/location";
+import { googleMapsLink, isLocationExpired } from "@/lib/location";
 import type { BookingRead, Message } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { SendIcon } from "./icons";
@@ -49,6 +50,7 @@ export function ChatBox({
   const [sending, setSending] = useState(false);
   const [typing, setTyping] = useState(false);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [readOverrides, setReadOverrides] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingChannel = useRef<TypingChannel | null>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -60,11 +62,19 @@ export function ChatBox({
     [initialMessages, incoming],
   );
 
+  const liveReads = useMemo(() => {
+    const byUser = new Map(reads.map((item) => [item.user_id, item.last_read_at]));
+    for (const [userId, lastReadAt] of Object.entries(readOverrides)) {
+      byUser.set(userId, lastReadAt);
+    }
+    return byUser;
+  }, [reads, readOverrides]);
+
   const otherReadAt = useMemo(() => {
     if (!otherUserId) return 0;
-    const read = reads.find((item) => item.user_id === otherUserId);
-    return read ? new Date(read.last_read_at).getTime() : 0;
-  }, [reads, otherUserId]);
+    const lastReadAt = liveReads.get(otherUserId);
+    return lastReadAt ? new Date(lastReadAt).getTime() : 0;
+  }, [liveReads, otherUserId]);
 
   const imagePaths = useMemo(
     () =>
@@ -82,6 +92,18 @@ export function ChatBox({
     if (!isSupabaseConfigured()) return;
 
     const supabase = createClient();
+
+    // โหลดข้อความที่อาจพลาดไปตอน tab  inactive / realtime ตัดการเชื่อมต่อ
+    async function refreshMessages() {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("booking_id", bookingId);
+      if (data?.length) {
+        setIncoming((current) => mergeMessages(current, data as Message[]));
+      }
+    }
+
     const channel = supabase
       .channel(`messages-${bookingId}`)
       .on(
@@ -99,6 +121,29 @@ export function ChatBox({
               ? current
               : [...current, message];
           });
+        },
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") void refreshMessages();
+      });
+
+    const readsChannel = supabase
+      .channel(`chat-reads-${bookingId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "booking_reads",
+          filter: `booking_id=eq.${bookingId}`,
+        },
+        (payload) => {
+          const row = payload.new as BookingRead;
+          if (!row.user_id || !row.last_read_at) return;
+          setReadOverrides((current) => ({
+            ...current,
+            [row.user_id]: row.last_read_at,
+          }));
         },
       )
       .subscribe();
@@ -120,6 +165,7 @@ export function ChatBox({
 
     return () => {
       void supabase.removeChannel(channel);
+      void supabase.removeChannel(readsChannel);
       void supabase.removeChannel(broadcast);
       typingChannel.current = null;
       if (typingTimeout.current) clearTimeout(typingTimeout.current);
@@ -306,23 +352,22 @@ export function ChatBox({
                         <p className="text-xs opacity-70">ลิงก์ตำแหน่งหมดอายุแล้ว</p>
                       ) : (
                         <>
-                          <iframe
-                            title="แผนที่ตำแหน่งที่แชร์"
-                            src={osmEmbed(message.latitude, message.longitude)}
+                          <GoogleMap
+                            latitude={message.latitude}
+                            longitude={message.longitude}
+                            label={locationLabel}
                             className="h-36 w-64 rounded-xl border-0"
-                            loading="lazy"
                           />
                           <a
-                            href={osmLink(
+                            href={googleMapsLink(
                               message.latitude,
                               message.longitude,
-                              locationLabel,
                             )}
                             target="_blank"
                             rel="noreferrer"
                             className="block text-xs font-semibold underline"
                           >
-                            เปิดในแผนที่
+                            เปิดใน Google Maps
                           </a>
                         </>
                       )}
