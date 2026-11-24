@@ -82,3 +82,13 @@ export function googleMapsLink(lat: number, lng: number): string {
   const params = new URLSearchParams({ api: "1", query: `${lat},${lng}` });
   return `https://www.google.com/maps/search/?${params.toString()}`;
 }
+
+// ฝัง Google Maps ได้โดยไม่ต้องใช้ API key / billing
+export function googleMapsEmbed(lat: number, lng: number, zoom = 15): string {
+  const params = new URLSearchParams({
+    q: `${lat},${lng}`,
+    z: String(zoom),
+    output: "embed",
+  });
+  return `https://maps.google.com/maps?${params.toString()}`;
+}

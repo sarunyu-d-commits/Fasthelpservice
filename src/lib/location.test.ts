@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDistance,
+  googleMapsEmbed,
   googleMapsLink,
   haversineDistanceKm,
   isValidCoordinate,
@@ -35,6 +36,12 @@ describe("location helpers", () => {
   it("สร้างลิงก์ Google Maps จากพิกัด", () => {
     expect(googleMapsLink(13.7563, 100.5018)).toBe(
       "https://www.google.com/maps/search/?api=1&query=13.7563%2C100.5018",
+    );
+  });
+
+  it("สร้าง embed Google Maps โดยไม่ต้องใช้ API key", () => {
+    expect(googleMapsEmbed(13.7563, 100.5018)).toBe(
+      "https://maps.google.com/maps?q=13.7563%2C100.5018&z=15&output=embed",
     );
   });
 });

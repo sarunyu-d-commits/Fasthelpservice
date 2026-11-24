@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { googleMapsApiKey } from "@/lib/location";
+import { googleMapsApiKey, googleMapsEmbed } from "@/lib/location";
 
 type GoogleMapInstance = {
   setCenter: (position: { lat: number; lng: number }) => void;
@@ -56,23 +56,24 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
   return mapsPromise;
 }
 
-export function GoogleMap({
-  latitude,
-  longitude,
-  label,
-  className = "h-52 w-full rounded-2xl border border-slate-200",
-}: {
+type GoogleMapProps = {
   latitude: number;
   longitude: number;
   label?: string | null;
   className?: string;
-}) {
+};
+
+function GoogleMapsJsMap({
+  latitude,
+  longitude,
+  label,
+  className,
+  apiKey,
+}: GoogleMapProps & { apiKey: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-  const apiKey = googleMapsApiKey();
 
   useEffect(() => {
-    if (!apiKey) return;
     let cancelled = false;
     let marker: GoogleMarkerInstance | null = null;
 
@@ -104,16 +105,6 @@ export function GoogleMap({
     };
   }, [apiKey, latitude, longitude, label]);
 
-  if (!apiKey) {
-    return (
-      <div
-        className={`${className} grid place-items-center bg-slate-100 px-4 text-center text-xs text-slate-500`}
-      >
-        กรุณาตั้งค่า NEXT_PUBLIC_GOOGLE_MAPS_API_KEY เพื่อแสดงแผนที่
-      </div>
-    );
-  }
-
   return (
     <div className="relative">
       <div ref={containerRef} className={className} />
@@ -128,5 +119,37 @@ export function GoogleMap({
         </div>
       ) : null}
     </div>
+  );
+}
+
+export function GoogleMap({
+  latitude,
+  longitude,
+  label,
+  className = "h-52 w-full rounded-2xl border border-slate-200",
+}: GoogleMapProps) {
+  const apiKey = googleMapsApiKey();
+
+  // ไม่มี API key ก็ยังเป็น Google Maps (ฝังแบบไม่ต้องใช้ key/billing)
+  if (!apiKey) {
+    return (
+      <iframe
+        title={label ? `แผนที่ ${label}` : "แผนที่"}
+        src={googleMapsEmbed(latitude, longitude)}
+        className={className}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+    );
+  }
+
+  return (
+    <GoogleMapsJsMap
+      latitude={latitude}
+      longitude={longitude}
+      label={label}
+      className={className}
+      apiKey={apiKey}
+    />
   );
 }
