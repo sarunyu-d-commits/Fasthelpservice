@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Thai, Prompt } from "next/font/google";
+import { Suspense } from "react";
+import { AuthErrorNotice } from "@/components/auth-error-notice";
 import { BottomNav } from "@/components/bottom-nav";
 import { PwaRegister } from "@/components/pwa-register";
 import { SiteHeader } from "@/components/site-header";
@@ -63,6 +65,9 @@ export default async function RootLayout({
     >
       <body className="min-h-full font-sans">
         <div className="relative flex min-h-dvh w-full flex-col">
+          <Suspense fallback={null}>
+            <AuthErrorNotice />
+          </Suspense>
           <SiteHeader auth={auth} />
           <main className="flex-1 pb-28 md:pb-10">{children}</main>
           <BottomNav role={auth?.profile?.role} />
