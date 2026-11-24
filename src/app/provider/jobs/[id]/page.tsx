@@ -37,14 +37,16 @@ export default async function ProviderJobPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
-  const { id } = await params;
-  const { error } = await searchParams;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const { error } = query;
 
-  const auth = await getAuthContext();
+  // RLS กรอง booking ให้แล้ว → ดึง auth กับ booking พร้อมกันได้
+  const [auth, booking] = await Promise.all([
+    getAuthContext(),
+    getBookingById(id),
+  ]);
   if (!auth) redirect(`/login?next=/provider/jobs/${id}`);
   if (auth.profile?.role !== "provider") redirect("/bookings");
-
-  const booking = await getBookingById(id);
   if (!booking) notFound();
   if (booking.provider_id !== auth.user.id) redirect("/provider");
 

@@ -57,13 +57,15 @@ export default async function BookingDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string; paid?: string; reviewed?: string }>;
 }) {
-  const { id } = await params;
-  const { error, paid, reviewed } = await searchParams;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const { error, paid, reviewed } = query;
 
-  const auth = await getAuthContext();
+  // auth และ booking ไม่ต้องรอกัน (RLS ตรวจสิทธิ์ booking อยู่แล้ว)
+  const [auth, booking] = await Promise.all([
+    getAuthContext(),
+    getBookingById(id),
+  ]);
   if (!auth) redirect(`/login?next=/bookings/${id}`);
-
-  const booking = await getBookingById(id);
   if (!booking) notFound();
 
   const isCustomer = booking.customer_id === auth.user.id;

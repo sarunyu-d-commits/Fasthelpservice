@@ -40,11 +40,13 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
+  // ตรวจเบื้องต้นจาก cookie (ไม่ยิง network) — page เป็นคน getUser() verify จริงอีกที
+  // คุ้มเพราะ RLS + getAuthContext() ยังบังคับอยู่ ไม่มีทางเข้า protected data ได้
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session?.user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", path);

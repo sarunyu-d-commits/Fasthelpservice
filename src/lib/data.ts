@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient, isSupabaseConfigured } from "./supabase/server";
 import { createPublicClient } from "./supabase/public";
 import { SEED_SERVICES } from "./seed-services";
@@ -34,31 +35,52 @@ function normalizeBooking(row: Record<string, unknown>): BookingWithRelations {
   };
 }
 
-export async function getAuthContext(): Promise<AuthContext | null> {
-  if (!isSupabaseConfigured()) return null;
+// memoize ต่อ request → ทุก page/action ที่เรียกซ้ำได้ผลเดิมโดยไม่ยิง network ซ้ำ
+export const getAuthContext = cache(
+  async (): Promise<AuthContext | null> => {
+    if (!isSupabaseConfigured()) return null;
 
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const supabase = await createClient();
 
-    if (!user) return null;
+      // ดึง id จาก session ใน cookie (ไม่ยิง network) เพื่อให้ query profile
+      // ทำงานคู่กับ getUser() ได้ → เหลือรอบเดียวแทนสองรอบ
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const localId = session?.user?.id ?? null;
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .maybeSingle();
+      const [userResult, profileResult] = await Promise.all([
+        supabase.auth.getUser(),
+        localId
+          ? supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", localId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
 
-    return {
-      user: { id: user.id, email: user.email },
-      profile: (profile as Profile | null) ?? null,
-    };
-  } catch {
-    return null;
-  }
-}
+      const user = userResult.data.user;
+      if (!user) return null;
+
+      const profile = profileResult.data as Profile | null;
+      return {
+        user: { id: user.id, email: user.email },
+        profile:
+          profile && profile.id === user.id
+            ? profile
+            : ((await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", user.id)
+                .maybeSingle()).data as Profile | null),
+      };
+    } catch {
+      return null;
+    }
+  },
+);
 
 export async function getServices(): Promise<Service[]> {
   const supabase = createPublicClient();
@@ -78,25 +100,28 @@ export async function getServices(): Promise<Service[]> {
   }
 }
 
-export async function getServiceBySlug(slug: string): Promise<Service | null> {
-  if (!isSupabaseConfigured()) {
-    return SEED_SERVICES.find((service) => service.slug === slug) ?? null;
-  }
+// generateMetadata + page เรียก slug เดียวกัน → แชร์ผลใน request เดียวกัน
+export const getServiceBySlug = cache(
+  async (slug: string): Promise<Service | null> => {
+    if (!isSupabaseConfigured()) {
+      return SEED_SERVICES.find((service) => service.slug === slug) ?? null;
+    }
 
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("services")
-      .select("*")
-      .eq("slug", slug)
-      .maybeSingle();
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle();
 
-    if (error) return SEED_SERVICES.find((s) => s.slug === slug) ?? null;
-    return (data as Service | null) ?? null;
-  } catch {
-    return SEED_SERVICES.find((s) => s.slug === slug) ?? null;
-  }
-}
+      if (error) return SEED_SERVICES.find((s) => s.slug === slug) ?? null;
+      return (data as Service | null) ?? null;
+    } catch {
+      return SEED_SERVICES.find((s) => s.slug === slug) ?? null;
+    }
+  },
+);
 
 export async function getCustomerBookings(
   customerId: string,
@@ -146,20 +171,24 @@ export async function getOpenBookings(
   try {
     const supabase = await createClient();
 
-    const { data: provider } = await supabase
-      .from("provider_profiles")
-      .select("is_available")
-      .eq("id", providerId)
-      .maybeSingle();
+    const [providerResult, linksResult] = await Promise.all([
+      supabase
+        .from("provider_profiles")
+        .select("is_available")
+        .eq("id", providerId)
+        .maybeSingle(),
+      supabase
+        .from("provider_services")
+        .select("service_id")
+        .eq("provider_id", providerId),
+    ]);
 
+    const provider = providerResult.data;
     if (!provider || provider.is_available === false) return [];
 
-    const { data: links } = await supabase
-      .from("provider_services")
-      .select("service_id")
-      .eq("provider_id", providerId);
-
-    const serviceIds = (links ?? []).map((row) => row.service_id as string);
+    const serviceIds = (linksResult.data ?? []).map(
+      (row) => row.service_id as string,
+    );
     if (serviceIds.length === 0) return [];
 
     const { data, error } = await supabase
@@ -333,6 +362,49 @@ export async function getUnreadCounts(
         new Date(row.last_read_at as string).getTime(),
       ]),
     );
+    const counts: Record<string, number> = {};
+    for (const row of messagesResult.data ?? []) {
+      const bookingId = row.booking_id as string;
+      if (row.sender_id === userId) continue;
+      const sentAt = new Date(row.created_at as string).getTime();
+      if (sentAt > (reads.get(bookingId) ?? 0)) {
+        counts[bookingId] = (counts[bookingId] ?? 0) + 1;
+      }
+    }
+    return counts;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * นับ unread ทุก booking ที่ user เป็น participant
+ * RLS กรอง booking ให้แล้ว → ไม่ต้องรอ booking IDs จึงรันคู่กับ query หลักได้
+ */
+export async function getUnreadCountsForUser(
+  userId: string,
+): Promise<Record<string, number>> {
+  if (!isSupabaseConfigured()) return {};
+
+  try {
+    const supabase = await createClient();
+    const [messagesResult, readsResult] = await Promise.all([
+      supabase
+        .from("messages")
+        .select("booking_id, sender_id, created_at"),
+      supabase
+        .from("booking_reads")
+        .select("booking_id, user_id, last_read_at")
+        .eq("user_id", userId),
+    ]);
+
+    const reads = new Map(
+      (readsResult.data ?? []).map((row) => [
+        row.booking_id as string,
+        new Date(row.last_read_at as string).getTime(),
+      ]),
+    );
+
     const counts: Record<string, number> = {};
     for (const row of messagesResult.data ?? []) {
       const bookingId = row.booking_id as string;

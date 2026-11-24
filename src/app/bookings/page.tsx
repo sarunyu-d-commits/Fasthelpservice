@@ -3,7 +3,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CalendarIcon, MapPinIcon, PlusIcon } from "@/components/icons";
 import { EmptyState, PaymentBadge, StatusBadge } from "@/components/ui";
-import { getAuthContext, getCustomerBookings, getUnreadCounts } from "@/lib/data";
+import {
+  getAuthContext,
+  getCustomerBookings,
+  getUnreadCountsForUser,
+} from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 
 export const metadata: Metadata = { title: "การจองของฉัน" };
@@ -13,11 +17,11 @@ export default async function BookingsPage() {
   if (!auth) redirect("/login?next=/bookings");
   if (auth.profile?.role === "provider") redirect("/provider");
 
-  const bookings = await getCustomerBookings(auth.user.id);
-  const unread = await getUnreadCounts(
-    bookings.map((booking) => booking.id),
-    auth.user.id,
-  );
+  // RLS กรอง messages ให้เอง → unread รันคู่กับ bookings ได้ ไม่ต้องรอกัน
+  const [bookings, unread] = await Promise.all([
+    getCustomerBookings(auth.user.id),
+    getUnreadCountsForUser(auth.user.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">

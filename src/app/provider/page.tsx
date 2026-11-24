@@ -18,7 +18,7 @@ import {
   getProviderJobs,
   getProviderProfile,
   getProviderServiceIds,
-  getUnreadCounts,
+  getUnreadCountsForUser,
 } from "@/lib/data";
 import { formatDateTime, formatTHB } from "@/lib/format";
 
@@ -41,16 +41,13 @@ export default async function ProviderDashboardPage({
   if (!auth) redirect("/login?next=/provider");
   if (auth.profile?.role !== "provider") redirect("/bookings");
 
-  const [openJobs, myJobs, provider, serviceIds] = await Promise.all([
+  const [openJobs, myJobs, provider, serviceIds, unread] = await Promise.all([
     getOpenBookings(auth.user.id),
     getProviderJobs(auth.user.id),
     getProviderProfile(auth.user.id),
     getProviderServiceIds(auth.user.id),
+    getUnreadCountsForUser(auth.user.id),
   ]);
-  const unread = await getUnreadCounts(
-    myJobs.map((job) => job.id),
-    auth.user.id,
-  );
 
   const { error } = await searchParams;
   const errorMessage = error
