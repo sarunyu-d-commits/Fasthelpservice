@@ -7,6 +7,7 @@ import {
   type ChatMessageInput,
 } from "@/app/actions/messages";
 import { GoogleMap } from "@/components/google-map";
+import { sendMessageDirect } from "@/lib/chat-send";
 import { formatTime } from "@/lib/format";
 import {
   googleMapsLink,
@@ -274,12 +275,22 @@ export function ChatBox({
     // แสดงทันทีก่อนรอ server + realtime
     setIncoming((current) => mergeMessages(current, [pending]));
 
-    const result = await sendMessage({
+    // ส่งตรง Supabase ก่อน (1 hop) ถ้า RLS/session ยังไม่พร้อมค่อย fallback ไป server action
+    let result = await sendMessageDirect({
       ...extra,
       bookingId,
+      senderId: currentUserId,
       body: value,
       type,
     });
+    if (result.error) {
+      result = await sendMessage({
+        ...extra,
+        bookingId,
+        body: value,
+        type,
+      });
+    }
     setSending(false);
 
     if (result.error) {
