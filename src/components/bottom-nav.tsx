@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { isAuthPath } from "@/lib/navigation";
-import type { Role } from "@/lib/types";
+import { useAuth } from "./auth-provider";
 import {
   CalendarIcon,
   GridIcon,
@@ -38,8 +38,9 @@ const subscribeToNothing = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-export function BottomNav({ role }: { role: Role | undefined }) {
+export function BottomNav() {
   const pathname = usePathname();
+  const role = useAuth()?.profile?.role;
 
   // usePathname อาจยังชี้ไปที่เส้นทางเก่าขณะ hydrate หลัง navigation
   // ให้ server และ client render ค่าเดียวกันก่อน แล้วค่อยอ่าน pathname หลัง mount

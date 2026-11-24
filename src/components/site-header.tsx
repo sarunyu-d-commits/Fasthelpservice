@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
-import type { AuthContext } from "@/lib/types";
+import { useAuth } from "./auth-provider";
 import { LogOutIcon, MapPinIcon } from "./icons";
 import { Logo } from "./logo";
 
@@ -22,7 +24,8 @@ const adminNav = [
   { href: "/bookings", label: "การจอง" },
 ];
 
-export function SiteHeader({ auth }: { auth: AuthContext | null }) {
+export function SiteHeader() {
+  const auth = useAuth();
   const name = auth?.profile?.full_name || auth?.user.email || "";
   const initial = name.trim().charAt(0).toUpperCase() || "U";
   const role = auth?.profile?.role;

@@ -1,4 +1,5 @@
 import { createClient, isSupabaseConfigured } from "./supabase/server";
+import { createPublicClient } from "./supabase/public";
 import { SEED_SERVICES } from "./seed-services";
 import type {
   AuthContext,
@@ -60,10 +61,10 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 }
 
 export async function getServices(): Promise<Service[]> {
-  if (!isSupabaseConfigured()) return SEED_SERVICES;
+  const supabase = createPublicClient();
+  if (!supabase) return SEED_SERVICES;
 
   try {
-    const supabase = await createClient();
     const { data, error } = await supabase
       .from("services")
       .select("*")

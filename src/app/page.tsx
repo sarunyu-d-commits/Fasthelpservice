@@ -26,6 +26,9 @@ import { getServices } from "@/lib/data";
 import { formatTHB } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 
+// หน้าแรกเป็นข้อมูลสาธารณะ → เก็บที่ edge แล้ว rebuild ใหม่ทุก 60 วินาที
+export const revalidate = 60;
+
 const steps = [
   {
     title: "เลือกบริการ",

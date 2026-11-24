@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
 import { Suspense } from "react";
 import { AuthErrorNotice } from "@/components/auth-error-notice";
+import { AuthProvider } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { PwaRegister } from "@/components/pwa-register";
 import { SiteHeader } from "@/components/site-header";
-import { getAuthContext } from "@/lib/data";
 import "./globals.css";
 
 const notoThai = Noto_Sans_Thai({
@@ -44,28 +44,25 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const auth = await getAuthContext();
-
   return (
-    <html
-      lang="th"
-      className={`${notoThai.variable} h-full antialiased`}
-    >
+    <html lang="th" className={`${notoThai.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">
-        <div className="relative flex min-h-dvh w-full flex-col">
-          <Suspense fallback={null}>
-            <AuthErrorNotice />
-          </Suspense>
-          <SiteHeader auth={auth} />
-          <main className="flex-1 pb-28 md:pb-10">{children}</main>
-          <BottomNav role={auth?.profile?.role} />
-        </div>
-        <PwaRegister />
+        <AuthProvider>
+          <div className="relative flex min-h-dvh w-full flex-col">
+            <Suspense fallback={null}>
+              <AuthErrorNotice />
+            </Suspense>
+            <SiteHeader />
+            <main className="flex-1 pb-28 md:pb-10">{children}</main>
+            <BottomNav />
+          </div>
+          <PwaRegister />
+        </AuthProvider>
       </body>
     </html>
   );
