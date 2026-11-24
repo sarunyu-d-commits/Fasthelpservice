@@ -213,12 +213,15 @@ export function ChatBox({
     void markChatRead(bookingId);
   }, [messages, bookingId]);
 
+  // ใช้ string เป็น dependency เพื่อไม่ให้ sign รูปซ้ำทุกครั้งที่มีข้อความใหม่
+  const imageKey = imagePaths.join("|");
   useEffect(() => {
-    if (!isSupabaseConfigured() || imagePaths.length === 0) return;
+    if (!isSupabaseConfigured() || !imageKey) return;
     const supabase = createClient();
+    const paths = imageKey.split("|");
 
     void Promise.all(
-      imagePaths.map(async (path) => {
+      paths.map(async (path) => {
         const { data } = await supabase.storage
           .from("chat-images")
           .createSignedUrl(path, 60 * 60);
@@ -237,7 +240,7 @@ export function ChatBox({
         return changed ? next : current;
       });
     });
-  }, [imagePaths]);
+  }, [imageKey]);
 
   function notifyTyping() {
     const now = Date.now();

@@ -606,6 +606,11 @@ exception
 end;
 $$;
 
+-- UPDATE/DELETE บนตารางที่มี RLS จะไม่ส่ง event ถ้า replica identity เป็น default
+-- (Realtime ต้องใช้ OLD row ในการเช็ค select policy) → ต้องเป็น FULL
+alter table public.booking_reads replica identity full;
+alter table public.messages replica identity full;
+
 -- ---------------------------------------------------------------------------
 -- Chat images (private Supabase Storage)
 -- path: {booking_id}/{sender_id}/{uuid}.{ext}
