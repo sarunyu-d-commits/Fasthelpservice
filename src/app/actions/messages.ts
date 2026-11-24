@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { getAuthContext } from "@/lib/data";
+import { getAuthContext, normalizeMessage } from "@/lib/data";
 import { isValidCoordinate, locationExpiresAt } from "@/lib/location";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import type { Message } from "@/lib/types";
 
 export interface ChatMessageInput {
   bookingId: string;
@@ -42,7 +42,7 @@ async function requireParticipant(bookingId: string) {
 
 export async function sendMessage(
   input: ChatMessageInput,
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; message?: Message }> {
   const bookingId = String(input.bookingId ?? "");
   if (!bookingId) return { error: "ไม่พบรายการจอง" };
 
@@ -82,23 +82,26 @@ export async function sendMessage(
     }
   }
 
-  const { error } = await supabase.from("messages").insert({
-    booking_id: bookingId,
-    sender_id: userId,
-    body: type === "text" ? body : body.slice(0, 2000),
-    message_type: type,
-    latitude,
-    longitude,
-    location_label: type === "location" ? body || null : null,
-    image_path: imagePath,
-    expires_at: expiresAt,
-  });
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      booking_id: bookingId,
+      sender_id: userId,
+      body: type === "text" ? body : body.slice(0, 2000),
+      message_type: type,
+      latitude,
+      longitude,
+      location_label: type === "location" ? body || null : null,
+      image_path: imagePath,
+      expires_at: expiresAt,
+    })
+    .select("*")
+    .single();
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/bookings/${bookingId}`);
-  revalidatePath(`/provider/jobs/${bookingId}`);
-  return {};
+  // คืนแถวที่เพิ่ง insert ให้ client แสดงทันที ไม่ต้องรอ realtime มาอีกรอบ
+  return { message: normalizeMessage(data as Record<string, unknown>) };
 }
 
 export async function markChatRead(
@@ -119,7 +122,5 @@ export async function markChatRead(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/bookings");
-  revalidatePath("/provider");
   return {};
 }

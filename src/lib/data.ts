@@ -253,7 +253,7 @@ export async function getBookingById(
   }
 }
 
-function normalizeMessage(row: Record<string, unknown>): Message {
+export function normalizeMessage(row: Record<string, unknown>): Message {
   return {
     ...(row as unknown as Message),
     message_type: (row.message_type as Message["message_type"]) ?? "text",

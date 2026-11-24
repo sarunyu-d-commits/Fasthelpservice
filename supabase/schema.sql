@@ -646,11 +646,30 @@ exception
 end;
 $$;
 
+-- อ่านภาพ: participant ทุกคนใน booking อ่านได้ (ไม่จำกัดว่าต้องเป็นเจ้าของ path)
+create or replace function public.is_chat_image_booking_allowed(p_path text)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = public, storage
+as $$
+declare
+  v_booking uuid;
+begin
+  v_booking := nullif((storage.foldername(p_path))[1], '')::uuid;
+  return v_booking is not null
+    and public.is_booking_participant(v_booking);
+exception
+  when others then return false;
+end;
+$$;
+
 drop policy if exists "participants read chat images" on storage.objects;
 create policy "participants read chat images" on storage.objects
   for select using (
     bucket_id = 'chat-images'
-    and public.is_chat_image_path_allowed(name)
+    and public.is_chat_image_booking_allowed(name)
   );
 
 drop policy if exists "participants upload chat images" on storage.objects;

@@ -8,7 +8,11 @@ import {
 } from "@/app/actions/messages";
 import { GoogleMap } from "@/components/google-map";
 import { formatTime } from "@/lib/format";
-import { googleMapsLink, isLocationExpired } from "@/lib/location";
+import {
+  googleMapsLink,
+  isLocationExpired,
+  locationExpiresAt,
+} from "@/lib/location";
 import type { BookingRead, Message } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { SendIcon } from "./icons";
@@ -31,6 +35,28 @@ function mergeMessages(initial: Message[], incoming: Message[]): Message[] {
   );
 }
 
+function optimisticMessage(
+  bookingId: string,
+  currentUserId: string,
+  value: string,
+  type: Message["message_type"],
+  extra: Partial<ChatMessageInput>,
+): Message {
+  return {
+    id: `temp-${crypto.randomUUID()}`,
+    booking_id: bookingId,
+    sender_id: currentUserId,
+    body: value,
+    message_type: type,
+    latitude: extra.latitude ?? null,
+    longitude: extra.longitude ?? null,
+    location_label: type === "location" ? value || null : null,
+    image_path: extra.imagePath ?? null,
+    expires_at: type === "location" ? locationExpiresAt() : null,
+    created_at: new Date().toISOString(),
+  };
+}
+
 export function ChatBox({
   bookingId,
   currentUserId,
@@ -48,6 +74,7 @@ export function ChatBox({
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [typing, setTyping] = useState(false);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [readOverrides, setReadOverrides] = useState<Record<string, string>>({});
@@ -233,6 +260,17 @@ export function ChatBox({
     if (sending) return;
     setSending(true);
     setError(null);
+
+    const pending = optimisticMessage(
+      bookingId,
+      currentUserId,
+      value,
+      type,
+      extra,
+    );
+    // แสดงทันทีก่อนรอ server + realtime
+    setIncoming((current) => mergeMessages(current, [pending]));
+
     const result = await sendMessage({
       ...extra,
       bookingId,
@@ -240,9 +278,22 @@ export function ChatBox({
       type,
     });
     setSending(false);
+
     if (result.error) {
+      setIncoming((current) => current.filter((item) => item.id !== pending.id));
       setError(result.error);
       return;
+    }
+
+    // แทนข้อความชั่วคราวด้วยแถวจริง (realtime ที่มาถึงก่อนจะโดน dedup ตาม id)
+    if (result.message) {
+      const saved = result.message;
+      setIncoming((current) =>
+        mergeMessages(
+          current.filter((item) => item.id !== pending.id),
+          [saved],
+        ),
+      );
     }
     setBody("");
   }
@@ -262,7 +313,7 @@ export function ChatBox({
       return;
     }
 
-    setSending(true);
+    setUploading(true);
     setError(null);
     const supabase = createClient();
     const extension = file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
@@ -272,14 +323,13 @@ export function ChatBox({
       .upload(path, file, { contentType: file.type });
 
     if (uploadError) {
-      setSending(false);
+      setUploading(false);
       setError(`อัปโหลดรูปไม่สำเร็จ: ${uploadError.message}`);
       return;
     }
 
-    const result = await sendMessage({ bookingId, body: "", type: "image", imagePath: path });
-    setSending(false);
-    if (result.error) setError(result.error);
+    setUploading(false);
+    await submit("", "image", { imagePath: path });
   }
 
   function handleLocation() {
@@ -406,7 +456,7 @@ export function ChatBox({
             type="file"
             accept="image/*"
             className="hidden"
-            disabled={sending}
+            disabled={sending || uploading}
             onChange={(event) => {
               void handleImage(event.target.files?.[0]);
               event.target.value = "";
@@ -416,7 +466,7 @@ export function ChatBox({
         <button
           type="button"
           onClick={handleLocation}
-          disabled={sending}
+          disabled={sending || uploading}
           className="rounded-full bg-slate-100 px-3 py-2 text-sm text-slate-600 transition hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
           title="แชร์ตำแหน่งปัจจุบัน"
         >
@@ -437,7 +487,7 @@ export function ChatBox({
         />
         <button
           type="submit"
-          disabled={sending || !body.trim()}
+          disabled={sending || uploading || !body.trim()}
           className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-sky-600 text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-sky-700 disabled:opacity-50"
           aria-label="ส่งข้อความ"
         >
