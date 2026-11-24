@@ -1,0 +1,9 @@
+node_modules
+mobile
+.next
+.git
+.vercel
+.env*
+*.log
+PROJECT_PROPOSAL_v2.docx
+tsconfig.tsbuildinfo
