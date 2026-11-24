@@ -185,8 +185,10 @@ export function ServiceCatalog({ services }: { services: Service[] }) {
         </div>
       ) : (
         <ViewTransition
+          key={`${activeCategory ?? ""}-${query}`}
+          name="catalog-content"
+          share="catalog-swap"
           enter="catalog-swap"
-          exit="catalog-swap"
           default="none"
         >
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
