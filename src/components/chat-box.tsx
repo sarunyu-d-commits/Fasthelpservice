@@ -121,16 +121,52 @@ export function ChatBox({
 
     const supabase = createClient();
 
-    // โหลดข้อความที่อาจพลาดไปตอน tab  inactive / realtime ตัดการเชื่อมต่อ
+    // โหลดข้อความ/สถานะอ่านที่อาจพลาดไปตอน tab inactive หรือ realtime ไม่ส่ง event
+    // (fallback นี้ทำให้แชทยังใช้งานได้แม้ตารางยังไม่ได้อยู่ใน publication ของ DB)
     async function refreshMessages() {
       const { data } = await supabase
         .from("messages")
         .select("*")
         .eq("booking_id", bookingId);
       if (data?.length) {
-        setIncoming((current) => mergeMessages(current, data as Message[]));
+        setIncoming((current) => {
+          const merged = mergeMessages(current, data as Message[]);
+          const unchanged =
+            merged.length === current.length &&
+            merged.every((message, index) => message.id === current[index].id);
+          return unchanged ? current : merged;
+        });
       }
     }
+
+    async function refreshReads() {
+      const { data } = await supabase
+        .from("booking_reads")
+        .select("user_id,last_read_at")
+        .eq("booking_id", bookingId);
+      if (!data?.length) return;
+      setReadOverrides((current) => {
+        const next = { ...current };
+        let changed = false;
+        for (const row of data as BookingRead[]) {
+          if (!row.user_id || !row.last_read_at) continue;
+          if (next[row.user_id] !== row.last_read_at) {
+            next[row.user_id] = row.last_read_at;
+            changed = true;
+          }
+        }
+        return changed ? next : current;
+      });
+    }
+
+    function refreshAll() {
+      if (document.visibilityState !== "visible") return;
+      void refreshMessages();
+      void refreshReads();
+    }
+
+    const refreshTimer = setInterval(refreshAll, 4000);
+    document.addEventListener("visibilitychange", refreshAll);
 
     const channel = supabase
       .channel(`messages-${bookingId}`)
@@ -192,6 +228,8 @@ export function ChatBox({
     typingChannel.current = broadcast;
 
     return () => {
+      clearInterval(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshAll);
       void supabase.removeChannel(channel);
       void supabase.removeChannel(readsChannel);
       void supabase.removeChannel(broadcast);
