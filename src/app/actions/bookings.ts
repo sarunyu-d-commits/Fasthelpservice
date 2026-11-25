@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAuthContext } from "@/lib/data";
 import { isValidCoordinate } from "@/lib/location";
+import { sendPushToUser } from "@/lib/push";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { BookingStatus, Service } from "@/lib/types";
 
@@ -203,6 +204,20 @@ export async function updateBookingStatus(formData: FormData) {
 
   if (error) redirect(`${returnTo}?error=${encodeURIComponent(error.message)}`);
 
+  const statusMessage: Record<BookingStatus, string> = {
+    pending: "มีงานใหม่รอยืนยัน",
+    accepted: "ช่างยืนยันรับงานแล้ว",
+    in_progress: "ช่างเริ่มดำเนินงานแล้ว",
+    completed: "งานเสร็จเรียบร้อยแล้ว",
+    cancelled: "งานถูกยกเลิก",
+  };
+  await sendPushToUser(
+    isProvider ? booking.customer_id : booking.provider_id,
+    "อัปเดตสถานะงาน FastHelp",
+    statusMessage[status],
+    `/bookings/${bookingId}`,
+  );
+
   revalidatePath(returnTo);
   revalidatePath(`/bookings/${bookingId}`);
   revalidatePath(`/provider/jobs/${bookingId}`);
@@ -242,6 +257,13 @@ export async function confirmPayment(formData: FormData) {
     .eq("customer_id", auth.user.id);
 
   if (error) redirect(`${returnTo}?error=${encodeURIComponent(error.message)}`);
+
+  await sendPushToUser(
+    booking.provider_id,
+    "ชำระเงินแล้ว",
+    "ลูกค้ายืนยันชำระเงินสำหรับงานนี้แล้ว",
+    `/provider/jobs/${bookingId}`,
+  );
 
   revalidatePath(returnTo);
   revalidatePath("/bookings");

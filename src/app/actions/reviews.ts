@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAuthContext } from "@/lib/data";
+import { sendPushToUser } from "@/lib/push";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
 export interface ReviewFormState {
@@ -60,6 +61,13 @@ export async function submitReview(
     }
     return { error: `ส่งรีวิวไม่สำเร็จ: ${error.message}` };
   }
+
+  await sendPushToUser(
+    booking.provider_id,
+    "รีวิวใหม่จากลูกค้า",
+    `${rating}/5 ดาว${comment ? ` · ${comment.slice(0, 80)}` : ""}`,
+    `/bookings/${bookingId}`,
+  );
 
   revalidatePath(`/bookings/${bookingId}`);
   revalidatePath("/bookings");

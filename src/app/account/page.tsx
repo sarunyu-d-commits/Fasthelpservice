@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
 import { AccountForm } from "@/components/account-form";
 import { PasswordForm } from "@/components/auth-forms";
+import { PushSubscribe } from "@/components/push-subscribe";
 import {
   CalendarIcon,
   ChevronRightIcon,
@@ -125,6 +126,10 @@ export default async function AccountPage() {
             phone={profile?.phone ?? ""}
           />
         </div>
+      </div>
+
+      <div className="mt-4">
+        <PushSubscribe />
       </div>
 
       <div className={`mt-4 ${cardClass}`}>

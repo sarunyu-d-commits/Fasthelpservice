@@ -2,6 +2,7 @@
 
 import { getAuthContext, normalizeMessage } from "@/lib/data";
 import { isValidCoordinate, locationExpiresAt } from "@/lib/location";
+import { sendPushToUser } from "@/lib/push";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Message } from "@/lib/types";
 
@@ -37,7 +38,7 @@ async function requireParticipant(bookingId: string) {
     return { error: "คุณไม่มีสิทธิ์ในแชทนี้" } as const;
   }
 
-  return { supabase, userId: auth.user.id } as const;
+  return { supabase, userId: auth.user.id, booking } as const;
 }
 
 export async function sendMessage(
@@ -48,7 +49,7 @@ export async function sendMessage(
 
   const participant = await requireParticipant(bookingId);
   if ("error" in participant) return { error: participant.error };
-  const { supabase, userId } = participant;
+  const { supabase, userId, booking } = participant;
 
   const type = input.type ?? "text";
   const body = String(input.body ?? "").trim().slice(0, 2000);
@@ -99,6 +100,21 @@ export async function sendMessage(
     .single();
 
   if (error) return { error: error.message };
+
+  const recipientId =
+    booking.customer_id === userId ? booking.provider_id : booking.customer_id;
+  const preview =
+    type === "text"
+      ? body.slice(0, 120)
+      : type === "image"
+        ? "ส่งรูปภาพในแชท"
+        : "ส่งตำแหน่งในแชท";
+  await sendPushToUser(
+    recipientId,
+    "ข้อความใหม่จาก FastHelp",
+    preview,
+    `/bookings/${bookingId}`,
+  );
 
   // คืนแถวที่เพิ่ง insert ให้ client แสดงทันที ไม่ต้องรอ realtime มาอีกรอบ
   return { message: normalizeMessage(data as Record<string, unknown>) };
