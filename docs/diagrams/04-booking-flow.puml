@@ -1,5 +1,5 @@
 @startuml
-title ภาพที่ 3-4 ขั้นตอนการจอง การรับงาน และการชำระเงิน
+title ภาพที่ 3-4 ขั้นตอนการจอง การรับงาน การแชท และการชำระเงิน
 
 skinparam backgroundColor #FFFFFF
 skinparam defaultFontName Tahoma
@@ -29,39 +29,54 @@ skinparam noteBorderColor #000000
 |ลูกค้า|
 start
 :เลือกบริการจากแค็ตตาล็อก;
-:กรอกวันเวลา ที่อยู่\nและรายละเอียดงาน;
+:กรอกวันเวลา ที่อยู่\nและพิกัดจุดนัดหมาย;
+note right
+  แผนที่ใช้ Google Maps แบบไม่ต้องใช้ key
+  (หรือ API key เสริมถ้ามี NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
+end note
 :ยืนยันการจอง;
 
 |ระบบ|
 :สร้างรายการจอง\nstatus = pending, payment_status = unpaid;
+:ส่ง Web Push แจ้งช่างที่เปิดรับงาน;
 note right
-  ลูกค้ายกเลิกได้เฉพาะงานที่ยังไม่เริ่ม
-  ระบบจะเปลี่ยน status = cancelled
+  RLS เฉพาะช่างที่ is_verified = true
+  (ยืนยันโดย admin) และ is_available = true
+  พร้อมบริการตรงกับงาน
 end note
-:แสดงงานให้ช่างที่เปิดรับ\nและมีบริการตรงกับงาน;
 
 |ลูกค้า|
-:สแกน PromptPay QR\nและกดยืนยันการชำระเงิน;
+:สแกน PromptPay QR\nและยืนยันการชำระเงิน;
 note right
-  ชำระได้ทุกเมื่อก่อนงานถูกยกเลิก
+  ชำระได้ก่อนงานถูกยกเลิก
   (ระดับต้นแบบ: ยืนยันด้วยตนเอง)
 end note
 
 |ระบบ|
 :payment_status = paid;
+:Web Push แจ้งช่างว่าชำระแล้ว;
 
 |ช่าง|
-:ตรวจสอบประเภทงาน\nวันเวลา และราคา;
+:ตรวจสอบประเภทงาน วันเวลา และราคา;
 if (รับงานหรือไม่?) then (รับงาน)
   |ระบบ|
   :กำหนด provider_id\nstatus = accepted;
+  :Web Push แจ้งลูกค้าว่ามีช่างรับงาน;
   |ช่าง|
+  :แชทเรียลไทม์กับลูกค้า\nข้อความ / รูปภาพ / ตำแหน่ง;
+  note right
+    แสดงสถานะกำลังพิมพ์และยืนยันการอ่าน
+    มี Web Push เมื่อมีข้อความใหม่
+  end note
   :กดเริ่มให้บริการ\nstatus = in_progress;
   :ให้บริการและปิดงาน\nstatus = completed;
+  |ระบบ|
+  :Web Push แจ้งลูกค้าให้รีวิว;
   |ลูกค้า|
   :รีวิวและให้คะแนน 1-5 ดาว;
   |ระบบ|
-  :Trigger คำนวณ rating_avg\nและ rating_count อัตโนมัติ;
+  :Trigger refresh_provider_rating\nอัปเดต rating_avg / rating_count;
+  :Web Push แจ้งช่างว่ามีรีวิวใหม่;
   stop
 else (ยังไม่รับ)
   |ระบบ|

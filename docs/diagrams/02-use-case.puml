@@ -29,18 +29,21 @@ actor "ลูกค้า" as Customer
 actor "ผู้ให้บริการ\n(ช่าง)" as Provider
 actor "ผู้ดูแลระบบ" as Admin
 
-rectangle "ระบบ FastHelp" {
+rectangle "ระบบ FastHelp (Web App)" {
   usecase "สมัครสมาชิก / เข้าสู่ระบบ" as UC01
-  usecase "รีเซ็ตรหัสผ่าน" as UC02
+  usecase "รีเซ็ตรหัสผ่านทางอีเมล" as UC02
   usecase "จัดการข้อมูลส่วนตัว" as UC03
   usecase "ค้นหาและดูรายละเอียดบริการ" as UC04
-  usecase "จองบริการ" as UC05
+  usecase "จองบริการพร้อมพิกัดจุดนัดหมาย" as UC05
   usecase "ชำระเงินผ่าน PromptPay QR" as UC06
   usecase "รับงานและอัปเดตสถานะ" as UC07
-  usecase "แชทกับคู่สนทนาในงาน" as UC08
+  usecase "แชทแบบเรียลไทม์\nข้อความ · รูปภาพ · ตำแหน่ง\nสถานะการพิมพ์ · ยืนยันการอ่าน" as UC08
   usecase "รีวิวและให้คะแนน" as UC09
   usecase "ยืนยันตัวตนผู้ให้บริการ" as UC10
-  usecase "จัดการบริการและดูรายงาน" as UC11
+  usecase "จัดการบริการและดูสถิติ" as UC11
+  usecase "เปิด/ปิดการแจ้งเตือน Web Push" as UC12
+  usecase "รับการแจ้งเตือน\nข้อความใหม่ · งานใหม่ · สถานะงาน\nชำระเงิน · รีวิว" as UC13
+  usecase "ดูตำแหน่งนัดหมายบน Google Maps" as UC14
 }
 
 Customer --> UC01
@@ -48,8 +51,12 @@ Customer --> UC02
 Customer --> UC03
 Customer --> UC04
 Customer --> UC05
+Customer --> UC06
 Customer --> UC08
 Customer --> UC09
+Customer --> UC12
+Customer --> UC13
+Customer --> UC14
 
 Provider --> UC01
 Provider --> UC02
@@ -57,14 +64,22 @@ Provider --> UC03
 Provider --> UC04
 Provider --> UC07
 Provider --> UC08
+Provider --> UC12
+Provider --> UC13
+Provider --> UC14
 
 Admin --> UC01
 Admin --> UC03
 Admin --> UC10
 Admin --> UC11
+Admin --> UC12
+Admin --> UC13
 
+UC05 ..> UC14 : <<include>>
 UC05 ..> UC06 : <<include>>\nหลังช่างรับงาน
 UC07 ..> UC08 : <<include>>
-UC09 ..> UC07 : <<extend>>\nเมื่องานเสร็จสิ้น
+UC07 ..> UC13 : <<include>>\nแจ้งลูกค้าเมื่อรับงาน
+UC08 ..> UC13 : <<include>>\nข้อความใหม่
+UC09 ..> UC13 : <<include>>\nรีวิวใหม่
 
 @enduml

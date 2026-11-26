@@ -1,5 +1,5 @@
 @startuml
-title ภาพที่ 3-1 สถาปัตยกรรมระบบ FastHelp
+title ภาพที่ 3-1 สถาปัตยกรรมระบบ FastHelp (Web App)
 
 skinparam backgroundColor #FFFFFF
 skinparam defaultFontName Tahoma
@@ -26,55 +26,68 @@ skinparam databaseBorderColor #000000
 skinparam componentBackgroundColor #FFFFFF
 skinparam componentBorderColor #000000
 skinparam componentFontColor #000000
+skinparam artifactBackgroundColor #FFFFFF
+skinparam artifactBorderColor #000000
 skinparam noteBackgroundColor #F7F7F7
 skinparam noteBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #000000
 
 left to right direction
 
-actor "ลูกค้า" as Customer
-actor "ผู้ให้บริการ\n(ช่าง)" as Provider
-actor "ผู้ดูแลระบบ" as Admin
+actor "ลูกค้า (Customer)" as Customer
+actor "ผู้ให้บริการ (Provider)" as Provider
+actor "ผู้ดูแลระบบ (Admin)" as Admin
 
-rectangle "เว็บแอปพลิเคชัน (Next.js 16)" as Web {
-  component "หน้าเว็บ / PWA\nReact 19 + Tailwind CSS 4" as WebUI
-  component "Server Actions\nจอง · รับงาน · แชท · รีวิว" as Actions
-  component "Proxy (Middleware)\nตรวจ session และสิทธิ์" as Proxy
+node "Vercel — Production\nfasthelp-kappa.vercel.app" as Vercel {
+  component "Next.js 16 App Router\nServer + Client Components\nISR: / และ /services" as WebUI
+  component "Proxy (middleware)\nupdateSession · cookie guard" as Proxy
+  component "Server Actions\nauth · bookings · messages · reviews\nadmin · profile · push" as Actions
+  component "Web Push / VAPID\nlib/push.ts (web-push)" as Push
+  artifact "/sw.js\npush · notificationclick" as SW
 }
 
-rectangle "แอปพลิเคชันมือถือ (Expo)" as Mobile {
-  component "Expo Router\nReact Native" as MobileUI
-  component "Supabase Client" as MobileClient
+cloud "Supabase Cloud\noaowgicupetabfdxburr" as Supabase {
+  component "Supabase Auth\nอีเมล/รหัสผ่าน · reset link\ncookie session" as Auth
+  database "PostgreSQL\nRLS ทุกตาราง + Trigger\nprofiles · services · bookings\nmessages · booking_reads\nreviews · push_subscriptions" as DB
+  component "Realtime\npostgres_changes\nmessages · booking_reads\nbroadcast typing" as RT
+  database "Storage (private)\nchat-images · signed URL" as Storage
 }
 
-cloud "Supabase Cloud" as Supabase {
-  component "Supabase Auth\nอีเมล / รีเซ็ตรหัสผ่าน" as Auth
-  database "PostgreSQL\nตาราง + RLS + Trigger" as DB
-  component "Realtime\n(WebSocket)" as Realtime
+cloud "บริการภายนอก" as External {
+  component "Google Maps\nkeyless embed / optional API key" as Maps
+  component "PromptPay QR\nEMVCo (ระดับต้นแบบ)" as QR
 }
 
-rectangle "ชำระเงิน (ระดับต้นแบบ)" as Payment {
-  component "PromptPay QR\nมาตรฐาน EMVCo" as QR
-}
+actor "Web Push บน\nอุปกรณ์ผู้ใช้" as Device
 
 Customer --> WebUI
 Provider --> WebUI
 Admin --> WebUI
-Customer --> MobileUI
-Provider --> MobileUI
-
 WebUI --> Proxy
 Proxy --> Auth
+WebUI --> Actions
+Actions --> Auth
 Actions --> DB
-MobileClient --> Auth
-MobileClient --> DB
-WebUI <--> Realtime
-MobileUI <--> Realtime
-WebUI --> QR
-MobileUI --> QR
+Actions --> Storage
+Actions --> Push
+Actions --> QR
+WebUI <--> RT
+WebUI --> Maps
+Push --> DB : อ่าน push_subscriptions
+Push --> Device : ส่งแจ้งเตือน VAPID
+Device --> SW
+SW --> WebUI : เปิดหน้างานที่เกี่ยวข้อง
 
 note bottom of DB
-  ทุกตารางเปิด Row Level Security
-  และใช้ Trigger ล็อกฟิลด์สำคัญ
+  RLS + Trigger: is_admin, is_provider, is_booking_participant
+  prevent_role_change, guard_provider_verification
+  guard_booking_update, refresh_provider_rating
+end note
+
+note bottom of Push
+  เฉพาะ publishable key (NEXT_PUBLIC_*) ที่ส่งถึง browser
+  VAPID_PRIVATE_KEY / VAPID_SUBJECT เก็บเป็น Vercel Secret
 end note
 
 @enduml

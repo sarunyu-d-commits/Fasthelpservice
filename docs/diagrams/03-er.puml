@@ -16,6 +16,8 @@ skinparam titleFontColor #000000
 skinparam entityBackgroundColor #FFFFFF
 skinparam entityBorderColor #000000
 skinparam entityFontColor #000000
+skinparam noteBackgroundColor #F7F7F7
+skinparam noteBorderColor #000000
 
 hide circle
 hide empty methods
@@ -82,6 +84,9 @@ entity "bookings" as bookings {
   scheduled_at : timestamptz
   address : text
   notes : text
+  latitude : double precision
+  longitude : double precision
+  location_label : text
   price : integer
   payment_status : text\n(unpaid / pending / paid /\nrefunded)
   payment_method : text
@@ -92,9 +97,32 @@ entity "bookings" as bookings {
 entity "messages" as messages {
   * id : uuid <<PK>>
   --
-  booking_id : uuid <<FK>>
-  sender_id : uuid <<FK>>
+  * booking_id : uuid <<FK>>
+  * sender_id : uuid <<FK>>
   body : text
+  message_type : text\n(text / location / image)
+  latitude : double precision
+  longitude : double precision
+  location_label : text
+  image_path : text\n(private storage)
+  expires_at : timestamptz
+  created_at : timestamptz
+}
+
+entity "booking_reads" as booking_reads {
+  * booking_id : uuid <<PK, FK>>
+  * user_id : uuid <<PK, FK>>
+  --
+  last_read_at : timestamptz
+}
+
+entity "push_subscriptions" as push_subscriptions {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  endpoint : text
+  p256dh : text
+  auth : text
   created_at : timestamptz
 }
 
@@ -117,14 +145,32 @@ profiles ||--o{ bookings : "ลูกค้าจอง"
 profiles ||--o{ bookings : "ช่างรับงาน"
 services ||--o{ bookings : "อ้างอิงบริการ"
 bookings ||--o{ messages : "สนทนา"
+bookings ||--o{ booking_reads : "สถานะอ่าน / นับข้อความยังไม่ได้อ่าน"
+profiles ||--o{ booking_reads : "อ่านข้อความ"
+profiles ||--o{ push_subscriptions : "สมัครแจ้งเตือน Web Push"
 bookings ||--o| reviews : "มีรีวิวได้ 1 ครั้ง"
 profiles ||--o{ reviews : "ลูกค้าเขียนรีวิว"
 profiles ||--o{ reviews : "ช่างได้รับรีวิว"
 
 note right of bookings #F7F7F7
   Trigger guard_booking_update
-  ล็อก customer_id, service_id,
-  price และตรวจลำดับสถานะ
+  ล็อก customer_id, service_id, price
+  และตรวจลำดับสถานะ
+end note
+
+note right of provider_profiles #F7F7F7
+  Trigger guard_provider_verification
+  ช่างแก้ is_verified เองไม่ได้
+  เฉพาะ admin เท่านั้น
+end note
+
+note bottom of messages #F7F7F7
+  อยู่ใน supabase_realtime (INSERT/UPDATE)
+  replica identity full → polling 4s เป็น fallback
+end note
+
+note bottom of booking_reads #F7F7F7
+  อยู่ใน supabase_realtime → read receipt แบบทันที
 end note
 
 note bottom of reviews #F7F7F7

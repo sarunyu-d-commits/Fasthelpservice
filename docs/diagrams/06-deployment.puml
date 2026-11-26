@@ -27,51 +27,58 @@ skinparam noteBorderColor #000000
 
 node "เครื่องผู้ใช้" {
   artifact "เบราว์เซอร์ / PWA" as Browser
-  artifact "แอป Android\n(APK / AAB)" as Android
-  artifact "แอป iOS\n(TestFlight / App Store)" as iOS
+  artifact "/sw.js (Service Worker)\npush · notificationclick" as SW
 }
 
-node "Vercel" {
-  artifact "Next.js 16 Web App\nSSR + Server Actions + PWA" as Web
+cloud "GitHub" {
+  component "main branch (push)" as GH
 }
 
-cloud "Supabase Cloud" {
+node "Vercel — Production" {
+  component "Auto Deploy\nlint · typecheck · test · build" as CI
+  component "Next.js 16 Web App\nfasthelp-kappa.vercel.app" as Web
+  component "Web Push (VAPID)\nlib/push.ts" as Push
+  component "Environment Secrets\nVAPID_PRIVATE_KEY · VAPID_SUBJECT" as Secrets
+}
+
+cloud "Supabase Cloud (Production)\noaowgicupetabfdxburr" {
   component "Auth" as Auth
-  database "PostgreSQL + RLS" as DB
-  component "Realtime" as RT
+  database "PostgreSQL + RLS + Trigger" as DB
+  component "Realtime\nmessages · booking_reads" as RT
+  database "Storage chat-images (private)" as Store
 }
 
-node "GitHub Actions" {
-  component "CI\nLint · Typecheck · Test · Build" as CI
-  component "Build Android APK" as APKCI
+cloud "บริการภายนอก" as External {
+  component "Google Maps" as Maps
 }
 
-node "Expo EAS" {
-  component "EAS Build\nAndroid / iOS" as EAS
-}
-
+GH --> CI : deploy อัตโนมัติเมื่อ push main
+CI --> Web
 Browser --> Web : HTTPS
-Android --> Web : HTTPS / WebView (Capacitor)
-iOS --> Web : HTTPS
-Web --> Auth : Supabase SDK
+Web --> Auth : cookie session
 Web --> DB : SQL ผ่าน PostgREST
 Web <--> RT : WebSocket
-Android --> Auth
-Android --> DB
-Android <--> RT
-iOS --> Auth
-iOS --> DB
-
-CI --> Web : deploy อัตโนมัติเมื่อ push main
-APKCI --> Android : artifact APK
-EAS --> Android
-EAS --> iOS
+Web --> Store : signed URL
+Web --> Maps
+Web --> Secrets
+Web --> Push
+Push --> DB : push_subscriptions
+Push --> Browser : แจ้งเตือนผ่าน Push Service (VAPID)
+Browser --> SW : ลงทะเบียน / รับ event
+SW --> Web : notificationclick เปิดหน้างาน
 
 note right of Web
-  NEXT_PUBLIC_APP_URL
-  NEXT_PUBLIC_SUPABASE_URL
-  NEXT_PUBLIC_SUPABASE_ANON_KEY
-  NEXT_PUBLIC_PROMPTPAY_ID
+  Production alias: https://fasthelp-kappa.vercel.app
+  NEXT_PUBLIC_APP_URL · NEXT_PUBLIC_SUPABASE_URL
+  NEXT_PUBLIC_SUPABASE_ANON_KEY (publishable)
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY (publishable)
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY (optional)
+  เฉพาะ key ที่ขึ้น NEXT_PUBLIC_* ส่งถึง browser
+end note
+
+note bottom of DB
+  รัน supabase/schema.sql + ENABLE_WEB_PUSH.sql
+  + FIX_ADMIN_LOGIN.sql + FIX_PROVIDER_SELF_VERIFY.sql
 end note
 
 @enduml

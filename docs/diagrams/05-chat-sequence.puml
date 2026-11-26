@@ -4,14 +4,14 @@ title ภาพที่ 3-5 ลำดับการทำงานของร
 skinparam backgroundColor #FFFFFF
 skinparam defaultFontName Tahoma
 skinparam defaultFontColor #000000
-skinparam defaultFontSize 13
+skinparam defaultFontSize 12
 skinparam dpi 150
 skinparam shadowing false
 skinparam roundcorner 4
 skinparam ArrowColor #000000
 skinparam ArrowThickness 1.1
 skinparam ArrowFontColor #000000
-skinparam ArrowFontSize 12
+skinparam ArrowFontSize 11
 skinparam titleFontSize 17
 skinparam titleFontColor #000000
 skinparam participantBackgroundColor #FFFFFF
@@ -19,7 +19,6 @@ skinparam participantBorderColor #000000
 skinparam participantFontColor #000000
 skinparam actorBackgroundColor #FFFFFF
 skinparam actorBorderColor #000000
-skinparam actorFontColor #000000
 skinparam databaseBackgroundColor #FFFFFF
 skinparam databaseBorderColor #000000
 skinparam sequenceLifeLineBorderColor #000000
@@ -30,25 +29,42 @@ skinparam noteBorderColor #000000
 
 actor "ลูกค้า" as Customer
 participant "ChatBox\n(Client Component)" as UI
+database "Supabase Storage\nchat-images (private)" as Store
 participant "Server Action\nsendMessage" as Action
-database "Supabase\nmessages" as DB
+database "Supabase\nmessages / booking_reads" as DB
+participant "Web Push\nVAPID · lib/push.ts" as Push
+participant "/sw.js" as SW
 participant "Supabase\nRealtime" as RT
 actor "ช่าง" as Provider
 
-Customer -> UI : พิมพ์ข้อความและกดส่ง
-UI -> Action : FormData(booking_id, body)
+Customer -> UI : พิมพ์ข้อความ / แนบรูป / แชร์ตำแหน่ง
+opt แนบรูปภาพในแชท
+  UI -> Store : upload ไป chat-images (private)
+  Store --> UI : signed URL
+end
+UI -> UI : แสดงสถานะกำลังพิมพ์ (broadcast typing)
+UI -> RT : broadcast typing-{bookingId}
+RT --> Provider : แสดง "กำลังพิมพ์..."
+UI -> Action : sendMessage(booking_id, message_type, body, image_path / พิกัด)
 Action -> Action : ตรวจ session ด้วย Supabase Auth
 Action -> DB : INSERT INTO messages
 note right of DB
-  RLS ตรวจว่า sender_id = auth.uid()
+  message_type = text / location / image
+  RLS: sender_id = auth.uid()
   และผู้ส่งต้องเป็นผู้ร่วมการจอง
 end note
 DB --> Action : บันทึกสำเร็จ
 Action --> UI : revalidatePath()
-DB -> RT : Broadcast INSERT\n(filter booking_id)
-RT --> Provider : ส่งข้อความใหม่แบบ Real-time
-Provider -> RT : เปิดช่อง messages-{bookingId}
-RT --> Provider : ข้อความที่ยังไม่ได้รับ
-Provider -> Provider : แสดงข้อความและเลื่อนอัตโนมัติ
+DB -> RT : postgres_changes INSERT (messages)
+RT --> Provider : ข้อความใหม่แบบ Real-time
+UI -> DB : poll messages ทุก 4 วินาที (fallback ถ้า event หาย)
+Action -> Push : sendPushToUser(recipient_id)
+Push -> DB : อ่าน push_subscriptions ของผู้รับ
+Push -> SW : ส่งแจ้งเตือนผ่าน VAPID
+SW --> Provider : แสดง notification
+Provider -> UI : เปิดข้อความ / ตอบกลับ
+Provider -> DB : upsert booking_reads(last_read_at)
+DB -> RT : postgres_changes UPDATE (booking_reads)
+RT --> UI : อัปเดตสถานะอ่านแล้ว / นับข้อความยังไม่ได้อ่าน
 
 @enduml
