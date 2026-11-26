@@ -14,6 +14,9 @@ async function requireAdmin() {
   return supabase;
 }
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function revalidateAdmin() {
   revalidatePath("/admin");
   revalidatePath("/provider");
@@ -27,7 +30,7 @@ export async function setProviderVerified(formData: FormData) {
 
   const providerId = String(formData.get("provider_id") ?? "");
   const verified = String(formData.get("verified") ?? "") === "true";
-  if (!providerId) redirect("/admin?error=invalid");
+  if (!UUID_PATTERN.test(providerId)) redirect("/admin?error=invalid");
 
   const supabase = await requireAdmin();
   const { error } = await supabase
@@ -46,7 +49,7 @@ export async function setServiceActive(formData: FormData) {
 
   const serviceId = String(formData.get("service_id") ?? "");
   const active = String(formData.get("active") ?? "") === "true";
-  if (!serviceId) redirect("/admin?error=invalid");
+  if (!UUID_PATTERN.test(serviceId)) redirect("/admin?error=invalid");
 
   const supabase = await requireAdmin();
   const { error } = await supabase

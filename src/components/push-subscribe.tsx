@@ -14,6 +14,17 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
 }
 
+// serviceWorker.ready hangs forever if no SW was registered (e.g. dev or
+// unsupported browsers). Cap the wait so the button never stays disabled.
+async function getRegistration() {
+  const existing = await navigator.serviceWorker.getRegistration();
+  if (existing) return existing;
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+  ]);
+}
+
 export function PushSubscribe() {
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const [subscribed, setSubscribed] = useState(false);
@@ -33,8 +44,10 @@ export function PushSubscribe() {
         return;
       }
       try {
-        const registration = await navigator.serviceWorker.ready;
-        const current = await registration.pushManager.getSubscription();
+        const registration = await getRegistration();
+        const current = registration
+          ? await registration.pushManager.getSubscription()
+          : null;
         if (active) setSubscribed(Boolean(current));
       } catch {
         // Ignore browsers where push is unavailable.
@@ -60,7 +73,11 @@ export function PushSubscribe() {
         return;
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await getRegistration();
+      if (!registration) {
+        setMessage("เบราว์เซอร์นี้รองรับการแจ้งเตือนไม่ได้");
+        return;
+      }
       const current = await registration.pushManager.getSubscription();
 
       if (current) {
