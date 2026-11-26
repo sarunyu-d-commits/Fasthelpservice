@@ -474,6 +474,27 @@ drop policy if exists "admins manage provider profiles" on public.provider_profi
 create policy "admins manage provider profiles" on public.provider_profiles
   for all using (public.is_admin()) with check (public.is_admin());
 
+-- ห้ามช่างยืนยันตัวตนตัวเอง (RLS อนุญาตให้แก้ own row ได้ จึงต้องการ trigger)
+create or replace function public.guard_provider_verification()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.is_verified is distinct from old.is_verified
+     and auth.uid() is not null
+     and not public.is_admin() then
+    raise exception 'ไม่มีสิทธิ์ยืนยันตัวตนช่าง';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists provider_profiles_guard_verification on public.provider_profiles;
+create trigger provider_profiles_guard_verification
+  before update on public.provider_profiles
+  for each row execute function public.guard_provider_verification();
+
 -- provider_services
 drop policy if exists "provider services are readable" on public.provider_services;
 create policy "provider services are readable" on public.provider_services

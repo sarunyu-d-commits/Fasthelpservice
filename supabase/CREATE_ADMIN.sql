@@ -1,6 +1,6 @@
 -- Create (or repair) the first FastHelp admin account.
--- Run in Supabase SQL Editor. auth.uid() is NULL here, so the
--- prevent_role_change trigger does not revert the role update.
+-- Run in Supabase SQL Editor with Ctrl+A -> Run.
+-- auth.uid() is NULL here, so prevent_role_change does not revert the role.
 
 do $$
 declare
@@ -12,58 +12,53 @@ begin
 
   if v_admin_id is null then
     insert into auth.users (
-      instance_id,
-      id,
-      aud,
-      role,
-      email,
-      encrypted_password,
-      email_confirmed_at,
-      raw_app_meta_data,
-      raw_user_meta_data,
-      created_at,
-      updated_at
+      instance_id, id, aud, role, email, encrypted_password,
+      email_confirmed_at, confirmation_token, email_change,
+      email_change_token_new, recovery_token,
+      raw_app_meta_data, raw_user_meta_data, created_at, updated_at
     )
     values (
-      '00000000-0000-0000-0000-000000000000',
-      gen_random_uuid(),
-      'authenticated',
-      'authenticated',
-      v_email,
+      '00000000-0000-0000-0000-000000000000', gen_random_uuid(),
+      'authenticated', 'authenticated', v_email,
       crypt(v_password, gen_salt('bf')),
-      now(),
+      now(), '', '', '', '',
       jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
       jsonb_build_object('full_name', 'FastHelp Admin'),
-      now(),
-      now()
+      now(), now()
     )
     returning id into v_admin_id;
-
-    -- Some Supabase versions require an identity row for email login.
-    begin
-      insert into auth.identities (
-        id,
-        user_id,
-        identity_data,
-        provider,
-        last_sign_in_at,
-        created_at,
-        updated_at
-      )
-      values (
-        gen_random_uuid(),
-        v_admin_id,
-        jsonb_build_object('sub', v_admin_id::text, 'email', v_email),
-        'email',
-        now(),
-        now(),
-        now()
-      )
-      on conflict (provider, user_id) do nothing;
-    exception when others then
-      null;
-    end;
+  else
+    update auth.users
+    set encrypted_password = crypt(v_password, gen_salt('bf')),
+        email_confirmed_at = coalesce(email_confirmed_at, now()),
+        confirmation_token = '',
+        email_change = '',
+        email_change_token_new = '',
+        recovery_token = ''
+    where id = v_admin_id;
   end if;
+
+  -- provider_id is NOT NULL on auth.identities (required for email login).
+  delete from auth.identities
+  where user_id = v_admin_id and provider = 'email' and provider_id is null;
+
+  insert into auth.identities (
+    id, user_id, provider, provider_id, identity_data,
+    last_sign_in_at, created_at, updated_at
+  )
+  select
+    gen_random_uuid(), v_admin_id, 'email', v_admin_id::text,
+    jsonb_build_object(
+      'sub', v_admin_id::text,
+      'email', v_email,
+      'email_verified', true,
+      'phone_verified', false
+    ),
+    now(), now(), now()
+  where not exists (
+    select 1 from auth.identities
+    where user_id = v_admin_id and provider = 'email'
+  );
 
   -- handle_new_user() only creates 'customer'/'provider', so set admin here.
   update public.profiles
